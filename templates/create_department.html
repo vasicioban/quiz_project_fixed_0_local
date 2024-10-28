@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ro">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creare Sucursală și Departamente</title>
+    <style>
+         body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        .header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-title-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-title-container a {
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info span {
+            margin-right: 10px;
+            color: #fff;
+        }
+
+        .user-info a {
+            color: #fff;
+            text-decoration: none;
+            padding: 5px 10px;
+            background-color: #0056b3;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .user-info a:hover {
+            background-color: #004080;
+        }
+        
+        .create-branch-department-container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .create-branch-department-container h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            flex: 0 0 30%;
+            margin-right: 10px;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .add-department {
+            margin-left: 10px;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .add-department:hover {
+            background-color: #0056b3;
+        }
+
+        .remove-department {
+            margin-left: 10px;
+            padding: 10px;
+            background-color: #da5a67;
+            border: none;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .remove-department:hover {
+            background-color: #c82333;
+        }
+
+        .alert {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            color: #000;
+        }
+
+        .alert-success {
+            background-color: #abe4b9;
+        }
+
+        .alert-danger {
+            background-color: #f1b1b9;
+        }
+
+        .save-button {
+            max-width: 200px;
+            margin: 20px auto 0;
+            display: block;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .save-button:hover {
+            background-color: #0056b3;
+        }
+        
+        .back-link-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.back-link {
+    display: inline-block;
+    padding: 10px 20px;
+   
+}
+    </style>
+</head>
+
+<body>
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="header">
+        <div class="logo-title-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px;">
+            <a href="/menu">HidroQuiz</a>
+        </div>
+
+        <div class="user-info">
+            <span>Bine ai venit, {{ username }}!</span>
+            <a href="/logout">Delogare</a>
+        </div>
+    </div>
+
+
+    <div class="create-branch-department-container">
+        <h2>Creare Departamente</h2>
+        <form action="/create_department" method="POST" id="branch-department-form">
+            <div class="form-group">
+                <label for="branch">Sucursala:</label>
+                <select id="branch" name="branch" class="form-control" required>
+                    <option value="">Selectează o sucursală</option>
+                    {% for sucursala in sucursale %}
+                    <option value="{{ sucursala[0] }}">{{ sucursala[0] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div id="department-fields">
+                <div class="form-group">
+                    <label for="department">Departament:</label>
+                    <input type="text" class="department-input form-control" name="department[]" placeholder="Nume departament" required>
+                    <button type="button" class="add-department">Adăugare</button>
+                </div>
+            </div>
+            <button type="submit" class="save-button">Salvare</button>
+            <div class="back-link-container">
+                <a href="/view_department" class="back-link">Înapoi</a>
+        </div>
+        </form>
+       
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const departmentFields = document.getElementById("department-fields");
+
+            function addDepartmentField() {
+                const newDepartmentField = document.createElement("div");
+                newDepartmentField.classList.add("form-group");
+
+                newDepartmentField.innerHTML = `
+                    <label for="department">Departament:</label>
+                    <input type="text" class="department-input form-control" name="department[]" placeholder="Nume departament" required>
+                    <button type="button" class="remove-department">Ștergere</button>`;
+
+                departmentFields.appendChild(newDepartmentField);
+
+                const removeButton = newDepartmentField.querySelector(".remove-department");
+                removeButton.addEventListener("click", function () {
+                    newDepartmentField.remove();
+                });
+            }
+
+            const addButton = document.querySelector(".add-department");
+            addButton.addEventListener("click", addDepartmentField);
+        });
+    </script>
+</body>
+
+</html>

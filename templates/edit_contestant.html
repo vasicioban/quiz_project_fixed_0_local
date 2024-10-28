@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ro">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editare Concurent</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        .header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-title-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-title-container a {
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info span {
+            margin-right: 10px;
+            color: #fff;
+        }
+
+        .user-info a {
+            color: #fff;
+            text-decoration: none;
+            padding: 5px 10px;
+            background-color: #0056b3;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .user-info a:hover {
+            background-color: #004080;
+        }
+
+        .edit-container {
+            max-width: 400px; 
+            margin: 100px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        
+        .edit-container h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .edit-container form {
+            text-align: left;
+        }
+
+        .edit-container label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .edit-container input[type="text"],
+        .edit-container input[type="password"] {
+            width: 100% ;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .save-button {
+            max-width: 200px;
+            margin: 20px auto 20px;
+            display: block;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .save-button:hover {
+            background-color: #0056b3;
+        }
+        
+        .back-link-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.back-link {
+    display: inline-block;
+    padding: 10px 20px;
+   
+}
+
+        .edit-container a {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .edit-container a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .contests-container {
+            width: 100% ; 
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-top: 20px; 
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .contests-container ul {
+            list-style: none;
+            padding: 0;
+            margin: 0; 
+        }
+
+        .contests-container li {
+            margin-bottom: 10px;
+            display: flex; 
+            align-items: center; 
+        }
+
+        .contests-container input[type="checkbox"] {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-danger">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <div class="header">
+        <div class="logo-title-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px;">
+            <a href="/menu">HidroQuiz</a>
+        </div>
+        <div class="user-info">
+            <span>Bine ai venit, {{ username }}!</span>
+            <a href="/logout">Delogare</a>
+        </div>
+    </div>
+
+    <div class="edit-container">
+        <h2>Editare Concurent</h2>
+        <form action="{{ url_for('edit_contestant', id=contestant[0]) }}" method="POST">
+            <input type="hidden" name="old_username" value="{{ contestant[1] }}">
+            
+            <label for="username">Username:</label>
+            <input type="text" name="username" id="username" value="{{ contestant[1] }}" required><br>
+        
+            <label for="password">Parolă ():</label>
+            <input type="password" name="password" id="password" placeholder="pentru a păstra parola curentă, nu completați"><br>
+        
+            <!-- <label for="user_type">Tip user:</label>
+            <input type="text" name="user_type" id="user_type" value="contestant" disabled><br> -->
+        
+            <label for="contests">Concursuri:</label>
+            <div class="contests-container">
+                <ul>
+                    {% for contest in contests %}
+                    <li>
+                        <input type="checkbox" name="contests" value="{{ contest[0] }}" {% if contest[0] in assigned_contests %} checked {% endif %}>
+                        {{ contest[1] }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        
+            <button type="submit" class="save-button">Salvare</button>
+            <div class="back-link-container">
+                <a href="/view_contestants" class="back-link">Înapoi</a>
+            </div>
+    </form>
+
+
+    </div>
+</body>
+
+</html>

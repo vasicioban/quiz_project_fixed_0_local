@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Preview Quizzes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        .header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            margin-left: 10px;
+        }
+
+        .logo-title-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-title-container a {
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info span {
+            margin-right: 10px;
+            color: #fff;
+        }
+
+        .user-info a {
+            color: #fff;
+            text-decoration: none;
+            padding: 5px 10px;
+            background-color: #0056b3;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .user-info a:hover {
+            background-color: #004080;
+        }
+
+        .main-container {
+            max-width: 800px; 
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-top: 0; 
+        }
+
+        .quiz {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            
+        }
+
+        .question {
+            margin-bottom: 10px; 
+        }
+
+        .question-number {
+            font-weight: bold;
+            display: inline; 
+        }
+
+        .question-text {
+            display: inline;
+            margin-left: 5px;
+        }
+
+        .answers {
+            margin-left: 20px;
+            padding-left: 0; 
+        }
+
+        ol {
+            padding-left: 20px; 
+            margin: 0; 
+        }
+
+        ol li {
+            margin-bottom: 10px; 
+        }
+
+        p {
+            margin: 0; 
+        }
+
+        .alert {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .back-link-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.back-link {
+    display: inline-block;
+    padding: 10px 20px;
+   
+}
+    </style>
+</head>
+<body>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-danger">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="header">
+        <div class="logo-title-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px;">
+            <a href="/menu">HidroQuiz</a>
+        </div>
+        <div class="user-info">
+            <span>Bine ai venit, {{ username }}!</span>
+            <a href="/logout">Delogare</a>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <h2>Previzualizare Chestionare</h2>
+
+        {% for numar_chestionar, questions in quiz_data.items() %}
+            <div class="quiz">
+                <h3>Chestionar {{ numar_chestionar }}</h3>
+                <ol>
+                    {% for question in questions %}
+                        <li class="question">
+                            <span class="question-number">Întrebare {{ loop.index }}:</span>
+                            <span class="question-text">{{ question.intrebare }}</span>
+                            <div class="answers">
+                                {% for raspuns in question.raspunsuri %}
+                                    <p>{{ raspuns }}</p>
+                                {% endfor %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </div>
+        {% endfor %}
+
+        <div class="back-link-container">
+            <a href="/view_contests" class="back-link">Înapoi</a>
+        </div>
+    </div>
+</body>
+</html>

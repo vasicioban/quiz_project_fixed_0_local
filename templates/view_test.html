@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Întrebări</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        .header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-title-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-title-container a {
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info span {
+            margin-right: 10px;
+            color: #fff;
+        }
+
+        .user-info a {
+            color: #fff;
+            text-decoration: none;
+            padding: 5px 10px;
+            background-color: #0056b3;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .user-info a:hover {
+            background-color: #004080;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .question {
+            display: none;
+        }
+
+        .question.active {
+            display: block;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .navigation button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .navigation button:disabled {
+            background-color: #ccc;
+        }
+
+        .answer {
+            margin-bottom: 10px;
+        }
+
+        .submit-button {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .submit-button button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .unanswered {
+            border: 2px solid red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="logo-title-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px;">
+            <a href="/menu">HidroQuiz</a>
+        </div>
+        <div class="user-info">
+            <span>Bine ai venit, {{ username }}!</span>
+            <a href="/logout">Delogare</a>
+        </div>
+    </div>
+    <div class="container">
+        <h2>Test de Întrebări</h2>
+        <form id="test-form" action="/submit_test" method="POST" onsubmit="return validateForm()">
+            <input type="hidden" name="id_concurs" value="{{ id_concurs }}">
+            <input type="hidden" name="id_set" value="{{ id_set }}">
+            <div id="questions-container">
+                {% for question_id, question in questions.items() %}
+                <div class="question" id="question-{{ question_id }}">
+                    <h3>{{ question.question_text }}</h3>
+                    <div class="answers">
+                        {% for answer in question.answers %}
+                        <div class="answer">
+                            <label>
+                                <input type="checkbox" name="question_{{ question_id }}[]" value="{{ answer.answer_id }}">
+                                {{ answer.answer_text }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="navigation">
+                <button type="button" id="prev-btn" onclick="prevQuestion()">Întrebarea Anterioară</button>
+                <button type="button" id="next-btn" onclick="nextQuestion()">Întrebarea Următoare</button>
+            </div>
+            <div class="submit-button">
+                <button type="submit" id="submit-btn">Trimite Testul</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let currentQuestionIndex = 0;
+        const questions = document.querySelectorAll('.question');
+
+        function updateQuestionVisibility() {
+            questions.forEach((question, index) => {
+                question.classList.toggle('active', index === currentQuestionIndex);
+            });
+            document.getElementById('prev-btn').disabled = currentQuestionIndex === 0;
+            document.getElementById('next-btn').disabled = currentQuestionIndex === questions.length - 1;
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                updateQuestionVisibility();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                updateQuestionVisibility();
+            }
+        }
+
+        updateQuestionVisibility();
+
+        function validateForm() {
+            const questions = document.querySelectorAll('.question');
+            let allAnswered = true;
+
+            questions.forEach((question) => {
+                const inputs = question.querySelectorAll('input[type="checkbox"]');
+                let answered = false;
+
+                inputs.forEach((input) => {
+                    if (input.checked) {
+                        answered = true;
+                    }
+                });
+
+                if (!answered) {
+                    allAnswered = false;
+                    question.classList.add('unanswered');
+                } else {
+                    question.classList.remove('unanswered');
+                }
+            });
+
+            if (!allAnswered) {
+                alert('Te rugăm să răspunzi la toate întrebările înainte de a trimite testul.');
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</body>
+
+</html>

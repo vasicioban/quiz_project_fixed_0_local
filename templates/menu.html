@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        .header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            margin-left: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info span {
+            margin-right: 10px;
+            color: #fff;
+        }
+
+        .user-info a {
+            color: #fff;
+            text-decoration: none;
+            padding: 5px 10px;
+            background-color: #0056b3;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .logo-title-container a {
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .menu-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-container ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .menu-container li {
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            margin-bottom: 10px;
+            text-align: center;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .menu-container li:hover {
+            background-color: #0056b3;
+        }
+
+        .menu-container a {
+            text-decoration: none;
+            color: #fff;
+            display: block;
+        }
+
+        .logo-title-container {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="alert alert-danger" role="alert">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Meniu</title>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-title-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px;">
+            <a href="/menu">HidroQuiz</a>
+        </div>
+        <div class="user-info">
+            <span>Bine ai venit, {{ username }}!</span>
+            <a href="{{ url_for('logout') }}" style="color: #fff; text-decoration: none;">Logout</a>
+        </div>
+    </div>
+
+    <div class="menu-container">
+        <ul>
+            {% if user_type == 'admin' %}
+            <li><a href="{{ url_for('view_users') }}">Utilizatori</a></li>
+            <li><a href="{{ url_for('view_branches') }}">Sucursale</a></li>
+            <li><a href="{{ url_for('view_department') }}">Departamente</a></li>
+            <li><a href="{{ url_for('view_contests') }}">Concursuri</a></li>
+            <li><a href="{{ url_for('view_question_sets') }}">Seturi întrebări</a></li>
+            <li><a href="{{ url_for('view_contestants') }}">Concurenți</a></li>
+            {% endif %}
+            {% if user_type == 'hr' %}
+
+            <li><a href="{{ url_for('view_branches') }}">Sucursale</a></li>
+            <li><a href="{{ url_for('view_department') }}">Departamente</a></li>
+            <li><a href="{{ url_for('view_contests') }}">Concursuri</a></li>
+            <li><a href="{{ url_for('view_question_sets') }}">Seturi Intrebari</a></li>
+            <li><a href="{{ url_for('view_contestants') }}">Concurenți</a></li>
+            {% endif %}
+            {% if user_type == 'contribuitor' %}
+            <li><a href="{{ url_for('view_users') }}">Utilizatori</a></li>
+            <li><a href="{{ url_for('view_branches') }}">Sucursale</a></li>
+            <li><a href="{{ url_for('view_department') }}">Departamente</a></li>
+            <li><a href="{{ url_for('view_contests') }}">Concursuri</a></li>
+            <li><a href="{{ url_for('view_question_sets') }}">Seturi Intrebari</a></li>
+            <li><a href="{{ url_for('view_contestants') }}">Concurenți</a></li>
+            {% endif %}
+            {% if user_type == 'concurent' %}
+                {% if assigned_contests %}
+                    {% for contest in assigned_contests %}
+                    <li><a href="{{ url_for('view_contest', id_concurs=contest[0]) }}">{{ contest[1] }}</a></li>
+                    {% endfor %}
+                {% else %}
+                    <li>Nu aveți asignat niciun concurs în acest moment.</li>
+                {% endif %}
+            {% endif %}
+        </ul>
+    </div>
+</body>
+
+
+
+
+
+</html>
+
+

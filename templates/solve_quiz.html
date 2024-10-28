@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rezolvă Testul</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            width: 100%;
+            position: absolute;
+            top: 0;
+        }
+
+        .logo-title-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-title-container a {
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .user-info a {
+            color: white;
+            text-decoration: none;
+            background-color: #0056b3;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .user-info a:hover {
+            background-color: #003d7a;
+        }
+
+        /* Centrăm formularul și întrebările */
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centrează pe orizontală */
+            justify-content: center; /* Centrează conținutul vertical */
+          
+            width: 600px; /* Fixează lățimea la 600px */
+            margin-top: 60px; /* Asigură spațiu între header și formular */
+        }
+
+        .question {
+            width: 600px; /* Folosește întreaga lățime a containerului */
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .question.active {
+            display: block;
+        }
+
+        .question h3 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .answers {
+            margin-top: 15px;
+        }
+
+        .answers label {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .answer {
+            margin-bottom: 10px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            width: 100%;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        button:hover {
+            box-shadow: 0 2px 10px rgba(0, 123, 255, 0.3);
+        }
+
+        #next-btn {
+            width: 200px;
+            background-color: #007bff;
+            color: white;
+        }
+
+        #next-btn:hover {
+            background-color: #0056b3;
+        }
+
+        #skip-btn {
+            width: 200px;
+            background-color: #6c757d;
+            color: white;
+        }
+
+        #skip-btn:hover {
+            background-color: #5a6268;
+        }
+
+        .submit-button button {
+            background-color: #28a745;
+            color: white;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .submit-button button:hover {
+            background-color: #218838;
+        }
+
+        .disabled {
+            background-color: gray !important;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .submit-button {
+            margin-top: 20px;
+            width: 25%;
+            text-align: center;
+        }
+    </style>
+
+
+</head>
+<body>
+    <div class="header">
+        <div class="logo-title-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px;">
+            <a href="/menu">HidroQuiz</a>
+        </div>
+        <div class="user-info">
+            <span>Bine ai venit, {{ session.username }}!</span>
+            <a href="/logout">Delogare</a>
+        </div>
+    </div>
+    <form id="test-form" action="{{ url_for('solve_quiz', id_chestionar=id_chestionar) }}" method="POST">
+        <input type="hidden" name="id_concurs" value="{{ id_concurs }}">
+    
+        <div id="questions-container">
+            {% for question_id, question in questions.items() %}
+            <div class="question" id="question-{{ question_id }}">
+                <h3>{{ question.question_text }}</h3>
+                <div class="answers">
+                    {% for answer in question.answers %}
+                    <div class="answer">
+                        <label>
+                            <input type="checkbox" name="question_{{ question_id }}[]" value="{{ answer.answer_id }}" onchange="handleAnswerSelection()">
+                            {{ answer.answer_text }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="navigation">
+            <button type="button" id="next-btn" onclick="nextQuestion()">Întrebarea Următoare</button>
+            <button type="button" id="skip-btn" onclick="skipQuestion()">Sari Întrebarea</button>
+        </div>
+        <div class="submit-button">
+            <button type="submit" id="submit-btn" class="disabled" disabled>Trimite Testul</button>
+        </div>
+    </form>
+    
+    <script>
+        let currentQuestionIndex = 0;
+        let skippedQuestions = [];
+        const questions = document.querySelectorAll('.question');
+        const answeredQuestions = new Set();
+
+
+        function updateQuestionVisibility() {
+            questions.forEach((question, index) => {
+                question.classList.toggle('active', index === currentQuestionIndex);
+            });
+
+            updateSubmitButtonState();
+        }
+
+    
+        function nextQuestion() {
+            if (isQuestionAnswered()) {
+                if (!answeredQuestions.has(currentQuestionIndex)) {
+                    answeredQuestions.add(currentQuestionIndex);
+                }
+                moveToNextQuestion();
+            } else {
+                alert('Te rugăm să răspunzi la întrebare înainte de a trece mai departe.');
+            }
+        }
+
+        function skipQuestion() {
+            if (!skippedQuestions.includes(currentQuestionIndex)) {
+                skippedQuestions.push(currentQuestionIndex);
+            }
+            moveToNextQuestion();
+        }
+
+        function moveToNextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+            } else if (skippedQuestions.length > 0) {
+                currentQuestionIndex = skippedQuestions.shift();  
+            }
+            updateQuestionVisibility();
+        }
+
+        function isQuestionAnswered() {
+            const inputs = questions[currentQuestionIndex].querySelectorAll('input[type="checkbox"]');
+            return Array.from(inputs).some(input => input.checked);
+        }
+
+        function handleAnswerSelection() {
+            if (isQuestionAnswered()) {
+                answeredQuestions.add(currentQuestionIndex);
+            }
+
+            const skipIndex = skippedQuestions.indexOf(currentQuestionIndex);
+            if (skipIndex !== -1) {
+                skippedQuestions.splice(skipIndex, 1);
+            }
+
+            updateSubmitButtonState();
+        }
+
+        function updateSubmitButtonState() {
+            const allQuestionsAnswered = questions.length === answeredQuestions.size && skippedQuestions.length === 0;
+            const submitButton = document.getElementById('submit-btn');
+            const nextButton = document.getElementById('next-btn');
+
+            if (allQuestionsAnswered) {
+                submitButton.disabled = false;
+                submitButton.classList.remove('disabled');
+                nextButton.disabled = true;  
+                document.getElementById('skip-btn').disabled = true; 
+            } else {
+                submitButton.disabled = true;
+                submitButton.classList.add('disabled');
+                nextButton.disabled = false;
+            }
+        }
+
+        updateQuestionVisibility();
+    </script>
+    
+</body>
+</html>

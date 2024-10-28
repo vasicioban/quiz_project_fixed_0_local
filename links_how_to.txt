@@ -1,0 +1,2 @@
+store encrypted passwords
+https://docs.vultr.com/how-to-securely-store-passwords-using-postgresql

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editare Concurs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        .header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-title-container a {
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info span {
+            margin-right: 10px;
+            color: #fff;
+        }
+
+        .user-info a {
+            color: #fff;
+            text-decoration: none;
+            padding: 5px 10px;
+            background-color: #0056b3;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .user-info a:hover {
+            background-color: #004080;
+        }
+
+        .edit-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .edit-container h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            flex: 0 0 30%;
+            margin-right: 10px;
+            color: #333;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="datetime-local"],
+        .form-group select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .form-group input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .save-button {
+            max-width: 200px;
+            margin: 20px auto 0;
+            display: block;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .save-button:hover {
+            background-color: #0056b3;
+        }
+        
+        .back-link-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.back-link {
+    display: inline-block;
+    padding: 10px 20px;
+   
+}
+        
+        
+        .alert {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            color: #000000;
+        }
+
+        .alert-success {
+            background-color: #abe4b9;
+        }
+
+        .alert-danger {
+            background-color: #f1b1b9;
+        }
+
+        .scrollable-checkboxes {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            max-height: 150px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .form-check {
+            margin-bottom: 5px;
+        }
+
+        .form-check-input {
+            margin-right: 10px;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const branchesDepartments = JSON.parse('{{ branches_departments|tojson|safe }}');
+            const currentDepartment = '{{ contest[3] }}';  
+
+            const branchSelect = document.getElementById("branch");
+            const departmentSelect = document.getElementById("department");
+
+            function updateDepartments() {
+                const selectedBranch = branchSelect.value;
+                departmentSelect.innerHTML = "";
+
+                branchesDepartments.forEach(function (item) {
+                    if (item[0] === selectedBranch) {
+                        const option = document.createElement("option");
+                        option.value = item[1];
+                        option.textContent = item[1];
+                        departmentSelect.appendChild(option);
+                    }
+                });
+
+                if (currentDepartment) {
+                    departmentSelect.value = currentDepartment;
+                }
+            }
+
+            branchSelect.addEventListener("change", updateDepartments);
+            updateDepartments();
+        });
+    </script>
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{category}}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+    
+    <div class="header">
+        <div class="logo-title-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px;">
+            <a href="/menu">HidroQuiz</a>
+        </div>
+        <div class="user-info">
+            <span>Bine ai venit, {{ username }}!</span>
+            <a href="/logout">Delogare</a>
+        </div>
+    </div>
+
+    <div class="edit-container">
+        <h2>Editare Concurs</h2>
+        <form action="{{ url_for('edit_contest', old_id_concurs=contest[0]) }}" method="POST">
+            <div class="form-group">
+                <label for="id_concurs">ID Concurs:</label>
+                <input type="text" id="id_concurs" name="id_concurs" value="{{ contest[0] }}" placeholder="ID unic" required>
+            </div>
+            <div class="form-group">
+                <label for="title">Titlu:</label>
+                <input type="text" id="title" name="title" value="{{ contest[1] }}" placeholder="Denumire Concurs" required>
+            </div>
+            <div class="form-group">
+                <label for="branch">Sucursala:</label>
+                <select id="branch" name="branch" required>
+                    <option value="" disabled>Selectați sucursala</option>
+                    {% for branch in branches %}
+                        <option value="{{ branch }}" {% if branch == contest[2] %}selected{% endif %}>{{ branch }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="department">Departament:</label>
+                <select id="department" name="department" required>
+                    <option value="" disabled>Selectați departamentul</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="datetime">Data și ora:</label>
+                <input type="datetime-local" id="datetime" name="datetime" value="{{ contest[4] }}" required>
+            </div>
+            <div class="form-group">
+                <label for="participants">Concurenți:</label>
+                <div id="participants" class="scrollable-checkboxes">
+                    {% for participant in available_participants %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="participants" value="{{ participant }}" id="participant_{{ loop.index }}" 
+                                {% if participant in selected_participants %} checked {% endif %}>
+                            <label class="form-check-label" for="participant_{{ loop.index }}">
+                                {{ participant }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="id_set">Set de întrebări:</label>
+                <select id="id_set" name="id_set" required>
+                    <option value="none" {% if selected_set == 'none' %}selected{% endif %}>|none|</option>
+                    {% for set in question_sets %}
+                        <option value="{{ set[0] }}" {% if set[0] == selected_set %}selected{% endif %}>{{ set[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <button type="submit" class="save-button">Salvare</button>
+            <div class="back-link-container">
+                <a href="/view_contests" class="back-link">Înapoi</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

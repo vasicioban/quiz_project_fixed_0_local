@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concurs</title>
+    <style>
+        .disabled {
+            color: gray;
+            pointer-events: none;
+        }
+        .header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            margin-left: 10px;
+        }
+        .logo-title-container {
+            display: flex;
+            align-items: center;
+        }
+       
+
+        .logo-title-container a {
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+        .user-info a {
+            color: #fff;
+            text-decoration: none;
+            padding: 5px 10px;
+            background-color: #0056b3;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .user-info a:hover {
+            background-color: #004080;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-container h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .login-container form {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .login-container input[type="text"],
+        .login-container input[type="password"] {
+            width: 95%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .login-container button:hover {
+            background-color: #0056b3;
+        }
+
+        .alert {
+            padding: 10px;
+            border-radius: 4px;
+            color: #000000;
+        }
+    
+        .alert-success {
+            background-color: #abe4b9;
+        }
+    
+        .alert-danger {
+            background-color: #f1b1b9;
+        }
+        
+        .contest-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .contest-container h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .contest-container form {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .contest-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            
+            transition: background-color 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+
+        .contest-container button:hover {
+            background-color: #0056b3;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        
+        .contest-container button.disabled {
+            background-color: gray;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+       
+        .contest-container button.disabled:hover {
+            background-color: gray;
+            box-shadow: none;
+        }
+
+        
+
+    </style>
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert {% if category == 'danger' %}alert-danger{% elif category == 'success' %}alert-success{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    
+    <div class="header">
+        <div class="logo-title-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px;">
+            <a href="/menu">HidroQuiz</a>
+        </div>
+        <div class="user-info">
+            <span>Bine ai venit, {{ session.username }}!</span>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="contest-container">
+        <h2>Concurs: {{ id_concurs }}</h2>
+
+       
+
+        {% if quizzes and quizzes|length > 0 %}
+            <form action="{{ url_for('solve_quiz', id_chestionar=quizzes[0][0]) }}" method="GET">
+               
+                <button type="submit" {% if standard_completed %}class="disabled"{% endif %}>
+                    Începe Testul Standard
+                </button>
+            </form>
+        {% else %}
+            <p>Nu există un chestionar standard disponibil pentru acest concurs.</p>
+        {% endif %}
+
+        {% if standard_completed and quizzes|length > 1 %}
+        <form action="{{ url_for('solve_quiz', id_chestionar=quizzes[1][0]) }}" method="GET">
+           
+            <button type="submit" {% if reserve_completed %}class="disabled" disabled{% endif %}>
+                Începe Testul de Rezervă
+            </button>
+        </form>
+    
+        {% elif standard_completed %}
+            <p>Nu există un chestionar de rezervă disponibil pentru acest concurs.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

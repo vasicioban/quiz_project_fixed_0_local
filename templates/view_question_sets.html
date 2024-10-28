@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ro">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vizualizare Seturi de Întrebări</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-sZwrsfUwWbMzL33yGrO+ZfrL0uZxshD8P1eDB/Jn0fn0FhDzEO6uTosDD/SsGOeU2yn8PDBly7zHJW1P7Ne9MA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    
+</head>
+
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{category}}" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <div class="header">
+        <div class="logo-title-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px;">
+            <a href="/menu">HidroQuiz</a>
+        </div>
+        <div class="user-info">
+            <span>Bine ai venit, {{ username }}!</span>
+            <a href="/logout">Delogare</a>
+        </div>
+    </div>
+
+    <div class="view-container">
+        <div class="search-container">
+            <h3>Vizualizare Seturi de Întrebări</h3>
+            <form action="/view_question_sets" method="GET" style="display: flex; margin-left: auto;">
+                <div class="search-box">
+                    <input type="text" name="search_term" placeholder="Caută..." value="{{ request.args.get('search_term', '') }}">
+                    <button type="submit">
+                        <img src="{{ url_for('static', filename='search-icon.png') }}" alt="Search Icon">
+                    </button>
+                </div>
+            </form>
+            <a href="/create_question_set" class="btn-add" style="margin-left: 10px;">Adăugare</a>
+        </div>
+        {% if has_question_sets %}
+        <table>
+            <thead>
+                <tr>
+                    <th class="{% if request.args.get('column') == 'id_set' %}sorted-{{ request.args.get('order', 'asc') }}{% endif %}">
+                        <a href="?column=id_set&order={{ 'desc' if request.args.get('order') == 'asc' else 'asc' }}">
+                            ID
+                            {% if request.args.get('column') == 'id_set' %}
+                            <i class="fas fa-sort-{{ 'down' if request.args.get('order') == 'asc' else 'up' }}"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th class="{% if request.args.get('column') == 'nume_set' %}sorted-{{ request.args.get('order', 'asc') }}{% endif %}">
+                        <a href="?column=nume_set&order={{ 'desc' if request.args.get('order') == 'asc' else 'asc' }}">
+                            Denumire
+                            {% if request.args.get('column') == 'nume_set' %}
+                            <i class="fas fa-sort-{{ 'down' if request.args.get('order') == 'asc' else 'up' }}"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+                    
+                    <th class="no-triangle">Acțiune</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for question_set in question_sets %}
+                <tr>
+                    <td>{{ question_set[0] }}</td>
+                    <td>{{ question_set[1] }}</td>
+                   
+                    <td>
+                        {% if user_type == 'admin' %}
+                        <a href="/edit_question_set/{{ question_set[0] }}" class="btn-add">Editare</a>
+                        <a href="/delete_question_set/{{ question_set[0] }}" class="btn-add">Șterge</a>
+                        {% elif user_type == 'contribuitor' %}
+                        <a href="/edit_question_set/{{ question_set[0] }}" class="btn-add">Editare</a>
+                        <a href="/delete_question_set/{{ question_set[0] }}" class="btn-add">Șterge</a>
+                        {% elif user_type == 'hr' %}
+                        <a href="/edit_question_set/{{ question_set[0] }}" class="btn-add">Editare</a>
+                        <a class="btn-add disabled">Șterge</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Nu există seturi de întrebări disponibile.</p>
+        {% endif %}
+    </div>
+</body>
+
+</html>
