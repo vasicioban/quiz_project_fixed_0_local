@@ -6,6 +6,7 @@ import time
 import subprocess
 import threading
 from flask import Flask, jsonify
+from flask_cors import CORS
 import obsws_python as obs
 
 # Path to the OBS WebSocket config file in %appdata%
@@ -74,6 +75,7 @@ def scene_collection_exists(req_client, collection_name):
 
 # Create Flask app
 app = Flask(__name__)
+CORS(app)
 
 # Route to start recording
 @app.route('/start', methods=['GET'])
@@ -82,7 +84,7 @@ def start_recording():
     recording_file_path = None # Reset before starting
 
     # Start OBS if not already running
-    start_obs()
+    # start_obs()
     
     # Connect to OBS
     obs_req = obs.ReqClient(**connectionParams)
@@ -90,15 +92,15 @@ def start_recording():
         return jsonify({'error': 'Unable to connect to OBS WebSocket'}), 500
 
     # Set the scene collection if it exists
-    if not scene_collection_exists(obs_req, SCENE_COLLECTION_NAME):
-        return jsonify({'error': f"Scene collection '{SCENE_COLLECTION_NAME}' does not exist"}), 400
+    # if not scene_collection_exists(obs_req, SCENE_COLLECTION_NAME):
+    #     return jsonify({'error': f"Scene collection '{SCENE_COLLECTION_NAME}' does not exist"}), 400
 
     # Select appropriate scene
-    try:
-        obs_req.set_current_scene_collection(SCENE_COLLECTION_NAME)
-        obs_req.set_current_program_scene(SCENE_NAME)
-    except Exception as e:
-        return jsonify({'error': f"Failed to set scene collection or scene: {e}"}), 500
+    # try:
+    #     obs_req.set_current_scene_collection(SCENE_COLLECTION_NAME)
+    #     obs_req.set_current_program_scene(SCENE_NAME)
+    # except Exception as e:
+    #     return jsonify({'error': f"Failed to set scene collection or scene: {e}"}), 500
 
     # Start recording
     try:
@@ -141,7 +143,7 @@ def stop_recording():
         obs_req.stop_record()
 
         # Stop OBS if necessary
-        stop_obs()
+        # stop_obs()
 
         if file_path:
             return jsonify({'status': 'Recording stopped', 'file_path': file_path})
@@ -156,4 +158,5 @@ if __name__ == '__main__':
 
     port, password = read_obs_config()
     connectionParams = {'port': port, 'password': password, 'timeout': 10}
+    start_obs()
     app.run(host='0.0.0.0', port=5055)
