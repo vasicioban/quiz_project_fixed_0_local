@@ -161,7 +161,7 @@ def login():
                 else:
                     flash("A apărut o problemă la pornirea înregistrării.", "danger")
 
-                print("Sesiune după login:", session)  
+                print("Sesiune dupa login:", session)
                 return redirect(url_for('menu'))
         flash("Utilizatorul sau parola au fost introduse greșit.", "danger")
         return redirect(url_for('login'))
