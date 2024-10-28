@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, g
+from flask_cors import CORS, cross_origin
 import psycopg2
 from psycopg2 import Error
 from functools import wraps
@@ -11,6 +12,7 @@ import requests
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
+CORS(app)
 
 
 def connect_db():
@@ -146,23 +148,15 @@ def login():
         username = request.form['username']
         password = request.form['password']
         user = check_credentials(username, password)
+
         if user:
             stored_password = user[1]
             if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
                 session['username'] = user[0]
                 session['user_type'] = user[2]
                 g.current_user = {'username': user[0], 'user_type': user[2]}
-
-              
-                obs_wrapper.start_obs()  
-                recording_response = requests.get("http://localhost:5055/start")  
-                if recording_response.ok:
-                    flash("Înregistrarea a fost pornită cu succes!", "success")
-                else:
-                    flash("A apărut o problemă la pornirea înregistrării.", "danger")
-
                 print("Sesiune dupa login:", session)
-                return redirect(url_for('menu'))
+                return "ok"
         flash("Utilizatorul sau parola au fost introduse greșit.", "danger")
         return redirect(url_for('login'))
 
@@ -519,16 +513,9 @@ def menu():
 
 @app.route('/logout')
 def logout():
-
-    stop_response = requests.get("http://localhost:5055/stop")
-    
-    if stop_response.ok:
-        session.pop('username', None)  
-        session.pop('user_type', None)
-        g.current_user = None 
-        flash("Înregistrarea a fost oprită și utilizatorul a fost deconectat.", "info")
-    else:
-        flash("A apărut o eroare la oprirea înregistrării OBS.", "danger")
+    session.pop('username', None)  
+    session.pop('user_type', None)
+    g.current_user = None 
     return redirect(url_for('login'))
 
 

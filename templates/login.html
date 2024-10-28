@@ -125,12 +125,47 @@
     </div>
     <div class="login-container">
         <h2>Login</h2>
-        <form action="/" method="POST">
+        <form id="loginForm">
             <input type="text" id="username" name="username" placeholder="Username">
             <input type="password" id="password" name="password" placeholder="Password">
-            <button type="submit">Login</button>
         </form>
+        <button onclick="send_form()">Login</button>
     </div>
+    <script>
+        function send_form() {
+            let formData = new FormData(document.getElementById("loginForm"));
+        
+            fetch("/", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Login error!");
+
+                return start_recording();  // Wait for start_recording to complete
+            })
+            .then(() => {
+                setTimeout(() => {
+                    console.log("Redirecting...");
+                }, 1000);  // 1-second delay if needed
+                window.location.replace("/menu");
+            })
+            .catch(error => {
+                console.error("Error during login or start recording:", error);
+            });
+        }
+
+        function start_recording() {
+            return fetch("http://localhost:5055/start")  // Return the fetch promise
+                .then(response => {
+                    if (!response.ok) throw new Error("Recording start failed!");
+                    console.log("Recording started.");
+                })
+                .catch(error => {
+                    console.error("Error in start_recording:", error);
+                });
+        }
+    </script>
 </body>
 
 </html>
