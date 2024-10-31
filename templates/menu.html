@@ -38,14 +38,19 @@
             color: #fff;
         }
 
-        .user-info a {
+        .user-info button {
             color: #fff;
+            border: none;
             text-decoration: none;
             padding: 5px 10px;
             background-color: #0056b3;
             border-radius: 4px;
             transition: background-color 0.3s;
         }
+
+        .user-info button:hover {
+            background-color: #004080;
+i        }
 
         .logo-title-container a {
             color: white;
@@ -143,7 +148,7 @@
         </div>
         <div class="user-info">
             <span>Bine ai venit, {{ username }}!</span>
-            <button onclick="logout()" style="color: #fff; background: #000baa; border-radius: 4px; border: none; cursor: pointer;">Logout</button>
+            <button onclick="logout()">Logout</button>
         </div>
     </div>
 
