@@ -116,21 +116,7 @@
         {% endfor %}
       {% endif %}
     {% endwith %}
-
-    <div class="header">
-        <div class="logo-title-container">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px;">
-            <h1>HidroQuiz</h1>
-        </div>
-    </div>
-    <div class="login-container">
-        <h2>Login</h2>
-        <form id="loginForm">
-            <input type="text" id="username" name="username" placeholder="Username">
-            <input type="password" id="password" name="password" placeholder="Password">
-        </form>
-        <button onclick="send_form()">Login</button>
-    </div>
+    
     <script>
         function send_form() {
             let formData = new FormData(document.getElementById("loginForm"));
@@ -145,9 +131,9 @@
                 return start_recording();  // Wait for start_recording to complete
             })
             .then(() => {
-                setTimeout(() => {
-                    console.log("Redirecting...");
-                }, 1000);  // 1-second delay if needed
+                // setTimeout(() => {
+                //     console.log("Redirecting...");
+                // }, 1000);  // 1-second delay if needed
                 window.location.replace("/menu");
             })
             .catch(error => {
@@ -156,7 +142,9 @@
         }
 
         function start_recording() {
-            return fetch("http://localhost:5055/start")  // Return the fetch promise
+            let username = document.getElementById("username").value;
+            console.log(`starting recording for user ${username}`);
+            return fetch(`http://localhost:5055/start?username=${username}`)  // Return the fetch promise
                 .then(response => {
                     if (!response.ok) throw new Error("Recording start failed!");
                     console.log("Recording started.");
@@ -165,6 +153,27 @@
                     console.error("Error in start_recording:", error);
                 });
         }
+    </script>
+
+    <div class="header">
+        <div class="logo-title-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px;">
+            <h1>HidroQuiz</h1>
+        </div>
+    </div>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="text" id="username" name="username" placeholder="Username">
+            <input type="password" id="password" name="password" placeholder="Password">
+            <button>Login</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            send_form();
+        })
     </script>
 </body>
 
