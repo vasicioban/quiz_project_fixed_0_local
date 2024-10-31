@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, g
-from flask_cors import CORS, cross_origin
+from flask import Flask, render_template, request, make_response, redirect, url_for, session, flash, jsonify, g
+from flask_cors import CORS
 import psycopg2
 from psycopg2 import Error
 from functools import wraps
@@ -7,13 +7,19 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import bcrypt
 import json 
 import random
-import obs_wrapper
 import requests
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
 CORS(app)
+app.secret_key = 'your_secret_key'
 
+
+@app.after_request
+def apply_csp(response):
+    response.headers['Content-Security-Policy'] = (
+        "connect-src 'self' http://localhost:5055"
+    )
+    return response
 
 def connect_db():
     return psycopg2.connect(
@@ -156,7 +162,9 @@ def login():
                 session['user_type'] = user[2]
                 g.current_user = {'username': user[0], 'user_type': user[2]}
                 print("Sesiune dupa login:", session)
-                return "ok"
+
+                response = make_response(jsonify({"message": "ok"}))
+                return response
         flash("Utilizatorul sau parola au fost introduse greșit.", "danger")
         return redirect(url_for('login'))
 
