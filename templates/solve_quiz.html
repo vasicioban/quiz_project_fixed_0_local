@@ -53,19 +53,19 @@
             background-color: #003d7a;
         }
 
-        /* Centrăm formularul și întrebările */
+     
         form {
             display: flex;
             flex-direction: column;
-            align-items: center; /* Centrează pe orizontală */
-            justify-content: center; /* Centrează conținutul vertical */
+            align-items: center; 
+            justify-content: center; 
           
-            width: 600px; /* Fixează lățimea la 600px */
-            margin-top: 60px; /* Asigură spațiu între header și formular */
+            width: 600px;
+            margin-top: 60px; 
         }
 
         .question {
-            width: 600px; /* Folosește întreaga lățime a containerului */
+            width: 600px; 
             background-color: white;
             border-radius: 8px;
             padding: 20px;
@@ -245,6 +245,8 @@
             }
             updateQuestionVisibility();
         }
+
+
 
         function isQuestionAnswered() {
             const inputs = questions[currentQuestionIndex].querySelectorAll('input[type="checkbox"]');
