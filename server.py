@@ -2182,62 +2182,7 @@ def solve_quiz(id_chestionar):
 
 
 
-@app.route('/contest/<int:id_concurs>', methods=['GET'])
-def view_contest(id_concurs):
-    if 'username' not in session:
-        return redirect(url_for('login'))
 
-    quizzes = []
-    standard_completed = False
-    reserve_completed = False
-
-    try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres"
-        )
-        cursor = connection.cursor()
-
-        cursor.execute("""
-            SELECT id_chestionar, tip
-            FROM chestionare
-            WHERE id_concurs = %s::VARCHAR
-            ORDER BY CASE WHEN tip = 'standard' THEN 1 ELSE 2 END;
-        """, (str(id_concurs),))
-        quizzes = cursor.fetchall()
-
-        
-        cursor.execute("""
-            SELECT COUNT(pr.id_raspuns)
-            FROM participanti_raspuns pr
-            JOIN chestionar_intrebari ci ON pr.id_intrebare = ci.id_intrebare
-            JOIN chestionare c ON ci.id_chestionar = c.id_chestionar
-            WHERE pr.username = %s AND c.id_concurs = %s AND c.tip = 'standard';
-        """, (session['username'], str(id_concurs)))
-        standard_completed = cursor.fetchone()[0] > 0
-
-        
-        cursor.execute("""
-            SELECT COUNT(pr.id_raspuns)
-            FROM participanti_raspuns pr
-            JOIN chestionar_intrebari ci ON pr.id_intrebare = ci.id_intrebare
-            JOIN chestionare c ON ci.id_chestionar = c.id_chestionar
-            WHERE pr.username = %s AND c.id_concurs = %s AND c.tip = 'rezerva';
-        """, (session['username'], str(id_concurs)))
-        reserve_completed = cursor.fetchone()[0] > 0
-
-    except (Exception, psycopg2.Error) as error:
-        print("Eroare la preluarea datelor:", error)
-        flash(f"A intervenit o eroare: {error}", "danger")
-    finally:
-        if connection:
-            cursor.close()
-            connection.close()
-
-    return render_template('contest.html', id_concurs=id_concurs, standard_completed=standard_completed, reserve_completed=reserve_completed, quizzes=quizzes)
 
 @app.route('/contest/<int:id_concurs>', methods=['GET'])
 def view_contest(id_concurs):
