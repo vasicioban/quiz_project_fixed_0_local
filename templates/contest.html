@@ -190,12 +190,10 @@
     <div class="contest-container">
         <h2>Concurs: {{ id_concurs }}</h2>
 
-       
-
         {% if quizzes and quizzes|length > 0 %}
             <form action="{{ url_for('solve_quiz', id_chestionar=quizzes[0][0]) }}" method="GET">
-               
-                <button type="submit" {% if standard_completed %}class="disabled"{% endif %}>
+                <button type="submit"
+                    {% if standard_completed or current_time < contest_start_time %}class="disabled" disabled{% endif %}>
                     Începe Testul Standard
                 </button>
             </form>
@@ -204,13 +202,12 @@
         {% endif %}
 
         {% if standard_completed and quizzes|length > 1 %}
-        <form action="{{ url_for('solve_quiz', id_chestionar=quizzes[1][0]) }}" method="GET">
-           
-            <button type="submit" {% if reserve_completed %}class="disabled" disabled{% endif %}>
-                Începe Testul de Rezervă
-            </button>
-        </form>
-    
+            <form action="{{ url_for('solve_quiz', id_chestionar=quizzes[1][0]) }}" method="GET">
+                <button type="submit"
+                    {% if reserve_completed or current_time < contest_start_time %}class="disabled" disabled{% endif %}>
+                    Începe Testul de Rezervă
+                </button>
+            </form>
         {% elif standard_completed %}
             <p>Nu există un chestionar de rezervă disponibil pentru acest concurs.</p>
         {% endif %}
