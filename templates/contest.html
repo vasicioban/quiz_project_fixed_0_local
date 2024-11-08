@@ -187,13 +187,12 @@
         </div>
     </div>
 
-    <div class="contest-container">
+    <div class="contest-container" onload="check_start_time">
         <h2>Concurs: {{ id_concurs }}</h2>
 
         {% if quizzes and quizzes|length > 0 %}
-            <form action="{{ url_for('solve_quiz', id_chestionar=quizzes[0][0]) }}" method="GET">
-                <button type="submit"
-                    {% if standard_completed or current_time < contest_start_time %}class="disabled" disabled{% endif %}>
+            <form action="{{ url_for('solve_quiz', id_chestionar=quizzes[0][0]) }}" method="GET" id="standard_quiz">
+                <button type="submit" class="disabled" disabled>
                     Începe Testul Standard
                 </button>
             </form>
@@ -202,9 +201,8 @@
         {% endif %}
 
         {% if standard_completed and quizzes|length > 1 %}
-            <form action="{{ url_for('solve_quiz', id_chestionar=quizzes[1][0]) }}" method="GET">
-                <button type="submit"
-                    {% if reserve_completed or current_time < contest_start_time %}class="disabled" disabled{% endif %}>
+            <form action="{{ url_for('solve_quiz', id_chestionar=quizzes[1][0]) }}" method="GET" id="reserve_quiz">
+                <button type="submit" class="disabled" disabled>
                     Începe Testul de Rezervă
                 </button>
             </form>
@@ -212,5 +210,62 @@
             <p>Nu există un chestionar de rezervă disponibil pentru acest concurs.</p>
         {% endif %}
     </div>
+    <script>
+        function check_start_time() {
+            const contest_start_time = Date.parse("{{ contest_start_time }}");
+            const server_current_time = Date.parse("{{ current_time }}");
+
+            if (server_current_time >= contest_start_time) {
+                enable_buttons();
+                return;
+            }
+            
+            // test cannot start yet
+            let time_left = (contest_start_time - server_current_time)/1000;
+            
+            let container = document.querySelector(".contest-container");
+            container.innerHTML += `<p id="timer-info">Timp rămas: <span id="timer">${seconds_to_hms(time_left)}</span></p>`;
+            
+            let timer = document.querySelector("#timer");
+            interval_id = setInterval(() => {
+                if (time_left <= 0) {
+                    clearInterval(interval_id);
+                    interval_id = null;
+                    container.removeChild(document.querySelector("#timer-info"));
+                    enable_buttons();
+                }
+                
+                time_left -= 1;
+                timer.innerText = seconds_to_hms(time_left);
+            }, 1000);
+        }
+
+        function seconds_to_hms(seconds) {
+            const HOURS_PER_DAY = 24;
+            const SECONDS_PER_DAY = 3600 * HOURS_PER_DAY;
+            
+            const days = Math.floor(seconds / SECONDS_PER_DAY);
+            const remainderSeconds = seconds % SECONDS_PER_DAY;
+            const hms = new Date(remainderSeconds * 1000).toISOString().substring(11, 19);
+            return hms.replace(/^(\d+)/, h => `${Number(h) + days * HOURS_PER_DAY}`.padStart(2, '0'));
+        }
+
+        function enable_buttons() {
+            let standard = document.querySelector("#standard_quiz button");
+            let reserve = document.querySelector("#reserve_quiz button");
+            
+            if (standard) {
+                standard.disabled = false;
+                standard.classList = [];
+            }
+            
+            if (reserve) {
+                reserve.disabled = false;
+                reserve.classList = [];
+            }
+        }
+        
+        document.body.onload = check_start_time();
+    </script>
 </body>
 </html>
