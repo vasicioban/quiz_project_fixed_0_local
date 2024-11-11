@@ -2117,6 +2117,8 @@ def solve_quiz(id_chestionar):
 
     else:
         questions = {}
+        current_time = datetime.now();
+        contest_start_time = None;
 
         try:
             connection = psycopg2.connect(
@@ -2137,6 +2139,12 @@ def solve_quiz(id_chestionar):
                 return redirect(url_for('view_contests'))
 
             id_concurs = result[0]
+
+            cursor.execute("""
+                SELECT data_ora FROM concurs
+                WHERE id_concurs = %s;
+            """, (str(id_concurs),))
+            contest_start_time = cursor.fetchone()[0]
 
             cursor.execute("""
                 SELECT i.id_intrebare, i.intrebare, r.id_raspuns, r.raspuns
@@ -2178,7 +2186,13 @@ def solve_quiz(id_chestionar):
                 cursor.close()
                 connection.close()
 
-        return render_template('solve_quiz.html', questions=questions, id_concurs=id_concurs, id_chestionar=id_chestionar)
+        return render_template(
+            'solve_quiz.html',
+            questions=questions,
+            id_concurs=id_concurs,
+            id_chestionar=id_chestionar,
+            contest_start_time=contest_start_time,
+            current_time=current_time)
 
 
 

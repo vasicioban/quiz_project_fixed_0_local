@@ -158,6 +158,13 @@
             width: 25%;
             text-align: center;
         }
+
+        #timer.ended {
+            color: white;
+            background-color: darkred;
+            padding: 1em;
+            border-radius: 4px;
+        }
     </style>
 
 
@@ -193,6 +200,8 @@
             </div>
             {% endfor %}
         </div>
+
+        <p id="timeLeft">Timp rămas: <span id="timer"></span></p>
         
         <div class="navigation">
             <button type="button" id="next-btn" onclick="nextQuestion()">Întrebarea Următoare</button>
@@ -209,6 +218,26 @@
         const questions = document.querySelectorAll('.question');
         const answeredQuestions = new Set();
 
+        const contest_start_time = Date.parse("{{ contest_start_time }}");
+        const current_time = Date.parse("{{ current_time }}");
+        let timeLeft = 120 * 60 - (current_time - contest_start_time) / 1000;
+
+        let timer = document.querySelector("#timer");
+
+        if (timeLeft <= 0) {
+            timerEnded()
+        } else {
+            interval_id = setInterval(() => {
+                if (timeLeft <= 1) {
+                    timer_ended();
+                    clearInterval(interval_id);
+                    interval_id = null;
+                }
+
+                timeLeft -= 1;
+                timer.innerHTML = seconds_to_hms(timeLeft);
+            }, 1000);
+        }
 
         function updateQuestionVisibility() {
             questions.forEach((question, index) => {
@@ -281,6 +310,23 @@
                 submitButton.classList.add('disabled');
                 nextButton.disabled = false;
             }
+        }
+
+        function timer_ended() {
+            let timer = document.querySelector("#timer");
+            timer.classList.add("ended");
+            timer.innerHTML = seconds_to_hms(0);
+            document.querySelector("#test-form").submit();
+        }
+
+        function seconds_to_hms(seconds) {
+            const HOURS_PER_DAY = 24;
+            const SECONDS_PER_DAY = 3600 * HOURS_PER_DAY;
+            
+            const days = Math.floor(seconds / SECONDS_PER_DAY);
+            const remainderSeconds = seconds % SECONDS_PER_DAY;
+            const hms = new Date(remainderSeconds * 1000).toISOString().substring(11, 19);
+            return hms.replace(/^(\d+)/, h => `${Number(h) + days * HOURS_PER_DAY}`.padStart(2, '0'));
         }
 
         updateQuestionVisibility();
