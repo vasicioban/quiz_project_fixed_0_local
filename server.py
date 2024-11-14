@@ -2140,11 +2140,46 @@ def solve_quiz(id_chestionar):
 
             id_concurs = result[0]
 
+            # check whether table entry exists
+            username = session['username']
             cursor.execute("""
-                SELECT data_ora FROM concurs
-                WHERE id_concurs = %s;
-            """, (str(id_concurs),))
-            contest_start_time = cursor.fetchone()[0]
+                SELECT 1 FROM participanti_scoruri WHERE username = %s AND id_concurs = %s AND id_set = %s
+            """, (username, id_concurs, id_chestionar))
+            existing_entry = cursor.fetchone()
+
+            # if it exists, get start_time
+            if existing_entry:
+                print("entry exists")
+                cursor.execute("""
+                    SELECT start_time FROM participanti_scoruri
+                    WHERE username = %s AND id_concurs = %s AND id_set = %s
+                """, (username, id_concurs, id_chestionar))
+                result = cursor.fetchone()[0]
+
+                # if it exists but start_time is not set, set it with the current time
+                if result is None:
+                    print("start_time not set")
+                    contest_start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    cursor.execute("""
+                        UPDATE participanti_scoruri
+                        SET start_time = (%s)
+                        WHERE username = (%s) AND id_concurs = (%s) AND id_set = (%s);
+                    """, (str(contest_start_time), username, id_concurs, id_chestionar))
+                    connection.commit()
+                    print("setting start_time", contest_start_time, "for id_concurs", id_concurs, "and id_set", id_chestionar)
+                # if it exists and is set, get start_time
+                else:
+                    contest_start_time = result;
+                    print("start_time exists: ", contest_start_time)
+            # if it doesn't exist, add entry with start_time set
+            else:
+                print("entry does not exist, creating")
+                contest_start_time = datetime.now()
+                cursor.execute("""
+                    INSERT INTO participanti_scoruri (username, id_concurs, id_set, start_tiem)
+                    VALUES (%s, %s::VARCHAR, %s, %s)
+                """, (username, id_concurs, id_chestionar, contest_start_time))
+                connection.commit()
 
             cursor.execute("""
                 SELECT i.id_intrebare, i.intrebare, r.id_raspuns, r.raspuns
