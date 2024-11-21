@@ -2176,7 +2176,7 @@ def solve_quiz(id_chestionar):
                 print("entry does not exist, creating")
                 contest_start_time = datetime.now()
                 cursor.execute("""
-                    INSERT INTO participanti_scoruri (username, id_concurs, id_set, start_tiem)
+                    INSERT INTO participanti_scoruri (username, id_concurs, id_set, start_time)
                     VALUES (%s, %s::VARCHAR, %s, %s)
                 """, (username, id_concurs, id_chestionar, contest_start_time))
                 connection.commit()
