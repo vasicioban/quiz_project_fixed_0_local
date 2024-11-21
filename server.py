@@ -8,7 +8,7 @@ import bcrypt
 import json 
 import random
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 CORS(app)
@@ -2022,7 +2022,9 @@ def solve_quiz(id_chestionar):
     username = session['username']
     if request.method == 'POST':
         answers = request.form
-        id_concurs = request.form.get('id_concurs')  
+        id_concurs = request.form.get('id_concurs')
+        end_time = request.form.get('end_time')
+        print("received end_time", str(end_time))
 
         try:
             connection = psycopg2.connect(
@@ -2086,14 +2088,16 @@ def solve_quiz(id_chestionar):
             if existing_score:
                 cursor.execute("""
                     UPDATE participanti_scoruri
-                    SET scor_total = %s
+                    SET scor_total = %s, end_time = (%s)
                     WHERE username = %s AND id_concurs = %s AND id_set = %s
-                """, (total_score, username, id_concurs, id_chestionar))
+                """, (total_score, end_time, username, id_concurs, id_chestionar))
+                print("had existing score, updated scor_total and end_time")
             else:
                 cursor.execute("""
-                    INSERT INTO participanti_scoruri (username, id_concurs, id_set, scor_total)
-                    VALUES (%s, %s::VARCHAR, %s, %s)
-                """, (username, id_concurs, id_chestionar, total_score))
+                    INSERT INTO participanti_scoruri (username, id_concurs, id_set, scor_total, end_time)
+                    VALUES (%s, %s::VARCHAR, %s, %s, %s)
+                """, (username, id_concurs, id_chestionar, total_score, end_time))
+                print("created new entry with scor_total and end_time")
 
             cursor.execute("""
                 INSERT INTO participanti_concurs (id_concurs, username, scor_total)
@@ -2109,7 +2113,7 @@ def solve_quiz(id_chestionar):
         except (Exception, psycopg2.Error) as error:
             print("Eroare la salvarea răspunsurilor:", error)
             flash(f"A intervenit o eroare: {error}", "danger")
-            return redirect(url_for('view_contest', id_concurs=id_concurs))  
+            return redirect(url_for('menu', id_concurs=id_concurs))  
         finally:
             if connection:
                 cursor.close()
@@ -2136,7 +2140,7 @@ def solve_quiz(id_chestionar):
             result = cursor.fetchone()
             if result is None:
                 flash("Nu am găsit concursul asociat cu acest chestionar.", "danger")
-                return redirect(url_for('view_contests'))
+                return redirect(url_for('menu'))
 
             id_concurs = result[0]
 
@@ -2147,16 +2151,30 @@ def solve_quiz(id_chestionar):
             """, (username, id_concurs, id_chestionar))
             existing_entry = cursor.fetchone()
 
-            # if it exists, get start_time
+            # if it exists, get start_time and end_time
             if existing_entry:
                 print("entry exists")
+                # Check the existence of end_time
+                cursor.execute("""
+                    SELECT end_time FROM participanti_scoruri
+                    WHERE username = %s AND id_concurs = %s AND id_set = %s           
+                """, (username, id_concurs, id_chestionar))
+                result = cursor.fetchone()[0]
+
+                # if it exists, don't allow the user to retake the test
+                if result is not None:
+                    print("result is", result)
+                    flash("Testul a fost terminat și nu mai poate fi accesat.", "danger")
+                    return redirect(url_for('menu'))
+
+                # check start_time
                 cursor.execute("""
                     SELECT start_time FROM participanti_scoruri
                     WHERE username = %s AND id_concurs = %s AND id_set = %s
                 """, (username, id_concurs, id_chestionar))
                 result = cursor.fetchone()[0]
 
-                # if it exists but start_time is not set, set it with the current time
+                # if start_time is not set, set it with the current time
                 if result is None:
                     print("start_time not set")
                     contest_start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -2171,6 +2189,13 @@ def solve_quiz(id_chestionar):
                 else:
                     contest_start_time = result;
                     print("start_time exists: ", contest_start_time)
+                    print(current_time - contest_start_time)
+
+                    # if current time is more than 2h ahead of contest_start_time, don't allow the user to take the test
+                    if current_time - contest_start_time > timedelta(hours=2):
+                        flash("Timpul alocat pentru concurs a expirat!", "error")
+                        return redirect(url_for("menu"))
+
             # if it doesn't exist, add entry with start_time set
             else:
                 print("entry does not exist, creating")

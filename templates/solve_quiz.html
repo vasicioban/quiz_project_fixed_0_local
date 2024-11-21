@@ -208,7 +208,7 @@
             <button type="button" id="skip-btn" onclick="skipQuestion()">Sari Întrebarea</button>
         </div>
         <div class="submit-button">
-            <button type="submit" id="submit-btn" class="disabled" disabled>Trimite Testul</button>
+            <button type="submit" id="submit-btn" class="disabled" onclick="submit_form()" disabled>Trimite Testul</button>
         </div>
     </form>
     
@@ -316,7 +316,18 @@
             let timer = document.querySelector("#timer");
             timer.classList.add("ended");
             timer.innerHTML = seconds_to_hms(0);
-            document.querySelector("#test-form").submit();
+            submit_form();
+        }
+
+        function submit_form(event = null) {
+            if (event)
+                event.preventDefault();
+            const form = document.querySelector("#test-form");
+            const input = document.createElement("input");
+            input.setAttribute("name", "end_time")
+            input.setAttribute("value", new Date().toISOString());
+            form.appendChild(input);
+            form.submit();
         }
 
         function seconds_to_hms(seconds) {
