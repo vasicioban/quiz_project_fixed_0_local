@@ -2510,6 +2510,44 @@ def solve_quiz(id_chestionar):
             existing_score = cursor.fetchone()
 
             if existing_score:
+                print("score already exists")
+                # Check the existence of end_time
+                cursor.execute(
+                    """
+                    SELECT end_time FROM participanti_scoruri
+                    WHERE username = %s AND id_concurs = %s AND id_set = %s           
+                """,
+                    (username, id_concurs, id_chestionar),
+                )
+                result = cursor.fetchone()[0]
+
+                # if it exists, don't resubmit the score
+                if result is not None:
+                    print("result is", result)
+                    flash(
+                        "Testul a fost terminat și nu mai poate fi accesat.", "danger"
+                    )
+
+                    # Get existing total score
+                    cursor.execute(
+                        """
+                        SELECT scor_total FROM participanti_scoruri
+                        WHERE username = %s AND id_concurs = %s AND id_set = %s           
+                    """,
+                        (username, id_concurs, id_chestionar),
+                    )
+                    total_score = cursor.fetchone()[0]
+
+                    return redirect(
+                        url_for(
+                            "test_report",
+                            id_concurs=id_concurs,
+                            id_set=id_chestionar,
+                            username=username,
+                            total_score=total_score,
+                        )
+                    )
+
                 cursor.execute(
                     """
                     UPDATE participanti_scoruri
