@@ -251,20 +251,21 @@
         }
 
         function enable_buttons() {
+            let standard_completed = "{{ standard_completed }}".toLowerCase() == "true";
+            let reserve_completed = "{{ reserve_completed }}".toLowerCase() == "true";
             let standard = document.querySelector("#standard_quiz button");
             let reserve = document.querySelector("#reserve_quiz button");
-            
-            if (standard) {
+
+            if (standard && !standard_completed) {
                 standard.disabled = false;
                 standard.classList = [];
             }
-            
-            if (reserve) {
+
+            if (reserve && standard_completed && !reserve_completed) {
                 reserve.disabled = false;
                 reserve.classList = [];
             }
         }
-        
         document.body.onload = check_start_time();
     </script>
 </body>

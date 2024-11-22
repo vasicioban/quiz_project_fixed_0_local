@@ -2807,28 +2807,26 @@ def view_contest(id_concurs):
 
         cursor.execute(
             """
-            SELECT COUNT(pr.id_raspuns)
-            FROM participanti_raspuns pr
-            JOIN chestionar_intrebari ci ON pr.id_intrebare = ci.id_intrebare
-            JOIN chestionare c ON ci.id_chestionar = c.id_chestionar
-            WHERE pr.username = %s AND c.id_concurs = %s AND c.tip = 'standard';
+            SELECT COUNT(ps.id)
+            FROM participanti_scoruri ps
+            JOIN chestionare c ON ps.id_set = c.id_chestionar
+            WHERE ps.username = %s AND ps.id_concurs = %s AND c.tip = 'standard';
         """,
             (session["username"], str(id_concurs)),
         )
         standard_completed = cursor.fetchone()[0] > 0
-
+        print(standard_completed)
         cursor.execute(
             """
-            SELECT COUNT(pr.id_raspuns)
-            FROM participanti_raspuns pr
-            JOIN chestionar_intrebari ci ON pr.id_intrebare = ci.id_intrebare
-            JOIN chestionare c ON ci.id_chestionar = c.id_chestionar
-            WHERE pr.username = %s AND c.id_concurs = %s AND c.tip = 'rezerva';
+            SELECT COUNT(ps.id)
+            FROM participanti_scoruri ps
+            JOIN chestionare c ON ps.id_set = c.id_chestionar
+            WHERE ps.username = %s AND ps.id_concurs = %s AND c.tip = 'rezerva';
         """,
             (session["username"], str(id_concurs)),
         )
         reserve_completed = cursor.fetchone()[0] > 0
-
+        print(reserve_completed)
     except (Exception, psycopg2.Error) as error:
         print("Eroare la preluarea datelor:", error)
         flash(f"A intervenit o eroare: {error}", "danger")
@@ -2858,7 +2856,6 @@ def test_report(id_concurs, id_set, username, total_score):
 
     if request.method == "POST":
         try:
-            # Obține conținutul PDF-ului din request
             pdf_content = request.files["pdf_file"].read()
 
             # Setup database connection
@@ -2871,7 +2868,6 @@ def test_report(id_concurs, id_set, username, total_score):
             )
             cursor = connection.cursor()
 
-            # Salvează conținutul PDF în baza de date
             cursor.execute(
                 """
                 UPDATE participanti_scoruri
@@ -2883,7 +2879,7 @@ def test_report(id_concurs, id_set, username, total_score):
 
             connection.commit()
 
-            return jsonify({"status": "PDF saved successfully"})
+            return jsonify({"status": "PDF saved successfully", "redirect_url": (url_for("view_contest", id_concurs=str(id_concurs)))})
 
         except (Exception, psycopg2.Error) as error:
             print("Eroare la salvarea raportului PDF:", error)
@@ -2909,7 +2905,6 @@ def test_report(id_concurs, id_set, username, total_score):
             )
             cursor = connection.cursor()
 
-            # Obține întrebările și răspunsurile
             cursor.execute(
                 """
                 SELECT i.id_intrebare, i.intrebare, r.id_raspuns, r.raspuns, r.punctaj,
