@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Preview Quizzes</title>
     <style>
@@ -61,7 +62,7 @@
         }
 
         .main-container {
-            max-width: 800px; 
+            max-width: 800px;
             margin: 50px auto;
             padding: 20px;
             background-color: #fff;
@@ -72,7 +73,7 @@
         h2 {
             text-align: center;
             color: #333;
-            margin-top: 0; 
+            margin-top: 0;
         }
 
         .quiz {
@@ -81,16 +82,16 @@
             border: 1px solid #ccc;
             background-color: #f9f9f9;
             border-radius: 8px;
-            
+
         }
 
         .question {
-            margin-bottom: 10px; 
+            margin-bottom: 10px;
         }
 
         .question-number {
             font-weight: bold;
-            display: inline; 
+            display: inline;
         }
 
         .question-text {
@@ -100,20 +101,20 @@
 
         .answers {
             margin-left: 20px;
-            padding-left: 0; 
+            padding-left: 0;
         }
 
         ol {
-            padding-left: 20px; 
-            margin: 0; 
+            padding-left: 20px;
+            margin: 0;
         }
 
         ol li {
-            margin-bottom: 10px; 
+            margin-bottom: 10px;
         }
 
         p {
-            margin: 0; 
+            margin: 0;
         }
 
         .alert {
@@ -124,27 +125,29 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-        .back-link-container {
-    text-align: center;
-    margin-top: 20px;
-}
 
-.back-link {
-    display: inline-block;
-    padding: 10px 20px;
-   
-}
+        .back-link-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            padding: 10px 20px;
+
+        }
     </style>
 </head>
+
 <body>
     {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-danger">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-danger">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
     {% endwith %}
 
     <div class="header">
@@ -162,22 +165,22 @@
         <h2>Previzualizare Chestionare</h2>
 
         {% for numar_chestionar, questions in quiz_data.items() %}
-            <div class="quiz">
-                <h3>Chestionar {{ numar_chestionar }}</h3>
-                <ol>
-                    {% for question in questions %}
-                        <li class="question">
-                            <span class="question-number">Întrebare {{ loop.index }}:</span>
-                            <span class="question-text">{{ question.intrebare }}</span>
-                            <div class="answers">
-                                {% for raspuns in question.raspunsuri %}
-                                    <p>{{ raspuns }}</p>
-                                {% endfor %}
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ol>
-            </div>
+        <div class="quiz">
+            <h3>Chestionar {{ numar_chestionar }}</h3>
+            <ol>
+                {% for question in questions %}
+                <li class="question">
+                    <span class="question-number">Întrebare {{ loop.index }}:</span>
+                    <span class="question-text">{{ question.intrebare }}</span>
+                    <div class="answers">
+                        {% for raspuns in question.raspunsuri %}
+                        <p>{{ raspuns }}</p>
+                        {% endfor %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
         {% endfor %}
 
         <div class="back-link-container">
@@ -185,4 +188,5 @@
         </div>
     </div>
 </body>
+
 </html>

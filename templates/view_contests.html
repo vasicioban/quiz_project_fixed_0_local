@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vizualizare Concursuri</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-sZwrsfUwWbMzL33yGrO+ZfrL0uZxshD8P1eDB/Jn0fn0FhDzEO6uTosDD/SsGOeU2yn8PDBly7zHJW1P7Ne9MA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+        integrity="sha512-sZwrsfUwWbMzL33yGrO+ZfrL0uZxshD8P1eDB/Jn0fn0FhDzEO6uTosDD/SsGOeU2yn8PDBly7zHJW1P7Ne9MA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         .header {
@@ -146,12 +148,13 @@
         .btn-add:hover {
             background-color: #a8c4e2;
         }
+
         .btn-add.disabled {
-    background-color: #e0e0e0; 
-    color: #a0a0a0; 
-    cursor: not-allowed; 
-    opacity: 0.6;
-}
+            background-color: #e0e0e0;
+            color: #a0a0a0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
 
         .search-container {
             display: flex;
@@ -170,7 +173,7 @@
             padding: 5px 5px 5px 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            margin-left: 0; 
+            margin-left: 0;
         }
 
         .search-box button {
@@ -203,6 +206,7 @@
         .search-container button:hover {
             background-color: #d5e3f1;
         }
+
         .participants-box {
             border: 1px solid #ccc;
             padding: 5px;
@@ -210,20 +214,21 @@
             max-height: 50px;
             overflow-y: scroll;
         }
+
         .alert {
-    padding: 10px;
-    border-radius: 4px;
+            padding: 10px;
+            border-radius: 4px;
 
-    color: #000000;
-}
+            color: #000000;
+        }
 
-.alert-success {
-    background-color: #abe4b9;
-}
+        .alert-success {
+            background-color: #abe4b9;
+        }
 
-.alert-danger {
-    background-color: #f1b1b9;
-}
+        .alert-danger {
+            background-color: #f1b1b9;
+        }
     </style>
 </head>
 
@@ -271,7 +276,8 @@
             <thead>
                 <tr>
                     <th class="{% if column == 'id_concurs' %}sorted-{{ order }}{% endif %}">
-                        <a href="?column=id_concurs&order={{ 'desc' if column == 'id_concurs' and order == 'asc' else 'asc' }}">
+                        <a
+                            href="?column=id_concurs&order={{ 'desc' if column == 'id_concurs' and order == 'asc' else 'asc' }}">
                             ID
                             {% if column == 'id_concurs' %}
                             <i class="fas fa-sort-{{ 'down' if order == 'asc' else 'up' }}"></i>
@@ -287,7 +293,8 @@
                         </a>
                     </th>
                     <th class="{% if column == 'sucursala' %}sorted-{{ order }}{% endif %}">
-                        <a href="?column=sucursala&order={{ 'desc' if column == 'sucursala' and order == 'asc' else 'asc' }}">
+                        <a
+                            href="?column=sucursala&order={{ 'desc' if column == 'sucursala' and order == 'asc' else 'asc' }}">
                             Sucursala
                             {% if column == 'sucursala' %}
                             <i class="fas fa-sort-{{ 'down' if order == 'asc' else 'up' }}"></i>
@@ -295,7 +302,8 @@
                         </a>
                     </th>
                     <th class="{% if column == 'departament' %}sorted-{{ order }}{% endif %}">
-                        <a href="?column=departament&order={{ 'desc' if column == 'departament' and order == 'asc' else 'asc' }}">
+                        <a
+                            href="?column=departament&order={{ 'desc' if column == 'departament' and order == 'asc' else 'asc' }}">
                             Departament
                             {% if column == 'departament' %}
                             <i class="fas fa-sort-{{ 'down' if order == 'asc' else 'up' }}"></i>
@@ -303,7 +311,8 @@
                         </a>
                     </th>
                     <th class="{% if column == 'data_ora' %}sorted-{{ order }}{% endif %}">
-                        <a href="?column=data_ora&order={{ 'desc' if column == 'data_ora' and order == 'asc' else 'asc' }}">
+                        <a
+                            href="?column=data_ora&order={{ 'desc' if column == 'data_ora' and order == 'asc' else 'asc' }}">
                             Data și ora
                             {% if column == 'data_ora' %}
                             <i class="fas fa-sort-{{ 'down' if order == 'asc' else 'up' }}"></i>
@@ -311,16 +320,18 @@
                         </a>
                     </th>
                     <th class="{% if column == 'nume_set' %}sorted-{{ order }}{% endif %}">
-                        <a href="?column=nume_set&order={{ 'desc' if column == 'nume_set' and order == 'asc' else 'asc' }}">
+                        <a
+                            href="?column=nume_set&order={{ 'desc' if column == 'nume_set' and order == 'asc' else 'asc' }}">
                             Set Întrebări
                             {% if column == 'nume_set' %}
                             <i class="fas fa-sort-{{ 'down' if order == 'asc' else 'up' }}"></i>
                             {% endif %}
                         </a>
                     </th>
-                    
+
                     <th class="{% if column == 'participants' %}sorted-{{ order }}{% endif %}">
-                        <a href="?column=participants&order={{ 'desc' if column == 'participants' and order == 'asc' else 'asc' }}">
+                        <a
+                            href="?column=participants&order={{ 'desc' if column == 'participants' and order == 'asc' else 'asc' }}">
                             Participanți
                             {% if column == 'participants' %}
                             <i class="fas fa-sort-{{ 'down' if order == 'asc' else 'up' }}"></i>
@@ -340,30 +351,35 @@
                     <td>{{ contest.data_ora.strftime('%Y-%m-%d %H:%M') }}</td>
                     <td>
                         {% if contest.nume_set %}
-                            <a href="{{ url_for('preview_quizzes', id_concurs=contest.id_concurs) }}">Chestionar_{{ contest.nume_set }}</a>
+                        <a href="{{ url_for('preview_quizzes', id_concurs=contest.id_concurs) }}">Chestionar_{{
+                            contest.nume_set }}</a>
                         {% else %}
-                            N/A
+                        N/A
                         {% endif %}
                     </td>
-                    
+
                     <td>
                         <div class="participants-box">
                             {% if contest.participants %}
-                                {% for participant in contest.participants %}
-                                    <span>{{ participant }}</span><br>
-                                {% endfor %}
+                            {% for participant in contest.participants %}
+                            <span>{{ participant }}</span><br>
+                            {% endfor %}
                             {% else %}
-                                <span></span>
+                            <span></span>
                             {% endif %}
                         </div>
                     </td>
                     <td>
                         {% if user_type == 'admin' %}
                         <a href="/edit_contest/{{ contest.id_concurs }}" class="btn-add">Editare</a>
-                        <a href="#" onclick="return confirm('Sigur dorești să ștergi acest concurs?') ? window.location.href='/delete_contest/{{ contest.id_concurs }}' : false;" class="btn-add">Ștergere</a>
+                        <a href="#"
+                            onclick="return confirm('Sigur dorești să ștergi acest concurs?') ? window.location.href='/delete_contest/{{ contest.id_concurs }}' : false;"
+                            class="btn-add">Ștergere</a>
                         {% elif user_type == 'contribuitor' %}
                         <a href="/edit_contest/{{ contest.id_concurs }}" class="btn-add">Editare</a>
-                        <a href="#" onclick="return confirm('Sigur dorești să ștergi acest concurs?') ? window.location.href='/delete_contest/{{ contest.id_concurs }}' : false;" class="btn-add">Ștergere</a>
+                        <a href="#"
+                            onclick="return confirm('Sigur dorești să ștergi acest concurs?') ? window.location.href='/delete_contest/{{ contest.id_concurs }}' : false;"
+                            class="btn-add">Ștergere</a>
                         {% elif user_type == 'hr' %}
                         <a href="/edit_contest/{{ contest.id_concurs }}" class="btn-add">Editare</a>
                         <a class="btn-add disabled">Șterge</a>

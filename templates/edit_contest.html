@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ro">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -108,19 +109,19 @@
         .save-button:hover {
             background-color: #0056b3;
         }
-        
-        .back-link-container {
-    text-align: center;
-    margin-top: 20px;
-}
 
-.back-link {
-    display: inline-block;
-    padding: 10px 20px;
-   
-}
-        
-        
+        .back-link-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            padding: 10px 20px;
+
+        }
+
+
         .alert {
             padding: 10px;
             border-radius: 4px;
@@ -158,7 +159,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const branchesDepartments = JSON.parse('{{ branches_departments|tojson|safe }}');
-            const currentDepartment = '{{ contest[3] }}';  
+            const currentDepartment = '{{ contest[3] }}';
 
             const branchSelect = document.getElementById("branch");
             const departmentSelect = document.getElementById("department");
@@ -186,17 +187,18 @@
         });
     </script>
 </head>
+
 <body>
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{category}}" role="alert">
-            {{ message }}
-        </div>
-        {% endfor %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{category}}" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
     {% endif %}
     {% endwith %}
-    
+
     <div class="header">
         <div class="logo-title-container">
             <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px;">
@@ -213,18 +215,20 @@
         <form action="{{ url_for('edit_contest', old_id_concurs=contest[0]) }}" method="POST">
             <div class="form-group">
                 <label for="id_concurs">ID Concurs:</label>
-                <input type="text" id="id_concurs" name="id_concurs" value="{{ contest[0] }}" placeholder="ID unic" required>
+                <input type="text" id="id_concurs" name="id_concurs" value="{{ contest[0] }}" placeholder="ID unic"
+                    required>
             </div>
             <div class="form-group">
                 <label for="title">Titlu:</label>
-                <input type="text" id="title" name="title" value="{{ contest[1] }}" placeholder="Denumire Concurs" required>
+                <input type="text" id="title" name="title" value="{{ contest[1] }}" placeholder="Denumire Concurs"
+                    required>
             </div>
             <div class="form-group">
                 <label for="branch">Sucursala:</label>
                 <select id="branch" name="branch" required>
                     <option value="" disabled>Selectați sucursala</option>
                     {% for branch in branches %}
-                        <option value="{{ branch }}" {% if branch == contest[2] %}selected{% endif %}>{{ branch }}</option>
+                    <option value="{{ branch }}" {% if branch==contest[2] %}selected{% endif %}>{{ branch }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -242,26 +246,27 @@
                 <label for="participants">Concurenți:</label>
                 <div id="participants" class="scrollable-checkboxes">
                     {% for participant in available_participants %}
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="participants" value="{{ participant }}" id="participant_{{ loop.index }}" 
-                                {% if participant in selected_participants %} checked {% endif %}>
-                            <label class="form-check-label" for="participant_{{ loop.index }}">
-                                {{ participant }}
-                            </label>
-                        </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="participants" value="{{ participant }}"
+                            id="participant_{{ loop.index }}" {% if participant in selected_participants %} checked {%
+                            endif %}>
+                        <label class="form-check-label" for="participant_{{ loop.index }}">
+                            {{ participant }}
+                        </label>
+                    </div>
                     {% endfor %}
                 </div>
             </div>
             <div class="form-group">
                 <label for="id_set">Set de întrebări:</label>
                 <select id="id_set" name="id_set" required>
-                    <option value="none" {% if selected_set == 'none' %}selected{% endif %}>|none|</option>
+                    <option value="none" {% if selected_set=='none' %}selected{% endif %}>|none|</option>
                     {% for set in question_sets %}
-                        <option value="{{ set[0] }}" {% if set[0] == selected_set %}selected{% endif %}>{{ set[1] }}</option>
+                    <option value="{{ set[0] }}" {% if set[0]==selected_set %}selected{% endif %}>{{ set[1] }}</option>
                     {% endfor %}
                 </select>
             </div>
-            
+
             <button type="submit" class="save-button">Salvare</button>
             <div class="back-link-container">
                 <a href="/view_contests" class="back-link">Înapoi</a>
@@ -269,4 +274,5 @@
         </form>
     </div>
 </body>
+
 </html>

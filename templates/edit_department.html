@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -132,27 +133,29 @@
         .save-button:hover {
             background-color: #0056b3;
         }
-        
-        .back-link-container {
-    text-align: center;
-    margin-top: 20px;
-}
 
-.back-link {
-    display: inline-block;
-    padding: 10px 20px;
-   
-}
+        .back-link-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            padding: 10px 20px;
+
+        }
     </style>
 </head>
 <!DOCTYPE html>
 <html lang="ro">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editare Departament</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
+
 <body>
     {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -182,13 +185,14 @@
                 <label for="sucursala">Sucursala:</label>
                 <select id="sucursala" name="sucursala" class="form-control" required>
                     {% for branch in branches %}
-                    <option value="{{ branch }}" {% if branch == sucursala %}selected{% endif %}>{{ branch }}</option>
+                    <option value="{{ branch }}" {% if branch==sucursala %}selected{% endif %}>{{ branch }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="form-group">
                 <label for="department">Departament:</label>
-                <input type="text" id="department" name="department" class="form-control" value="{{ departament }}" required>
+                <input type="text" id="department" name="department" class="form-control" value="{{ departament }}"
+                    required>
             </div>
             <button type="submit" class="save-button">Salvare</button>
             <div class="back-link-container">
@@ -197,8 +201,7 @@
         </form>
     </div>
 </body>
-</html>
 
 </html>
 
-
+</html>

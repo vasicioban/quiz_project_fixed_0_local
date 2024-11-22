@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="ro">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vizualizare Sucursale</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-sZwrsfUwWbMzL33yGrO+ZfrL0uZxshD8P1eDB/Jn0fn0FhDzEO6uTosDD/SsGOeU2yn8PDBly7zHJW1P7Ne9MA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+        integrity="sha512-sZwrsfUwWbMzL33yGrO+ZfrL0uZxshD8P1eDB/Jn0fn0FhDzEO6uTosDD/SsGOeU2yn8PDBly7zHJW1P7Ne9MA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 
     <style>
@@ -150,7 +153,7 @@
             padding: 5px 5px 5px 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            margin-left: 0; 
+            margin-left: 0;
         }
 
         .search-box button {
@@ -198,34 +201,35 @@
         .add-button:hover {
             background-color: #a8c4e2;
         }
-        
+
         .add-button-container {
             margin-left: auto;
             display: flex;
             align-items: center;
         }
-        .btn-add {
-    background-color: #c4d1df; 
-    color: #0c0c0c; 
-    padding: 5px 10px; 
-    border-radius: 4px; 
-    text-decoration: none; 
-    transition: background-color 0.3s; 
-    font-size: 14px; 
-    border: none; 
-    outline: none; 
-}
 
-.btn-add:hover {
-    background-color: #a8c4e2;
-}
+        .btn-add {
+            background-color: #c4d1df;
+            color: #0c0c0c;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            font-size: 14px;
+            border: none;
+            outline: none;
+        }
+
+        .btn-add:hover {
+            background-color: #a8c4e2;
+        }
 
         .btn-add.disabled {
-    background-color: #e0e0e0; 
-    color: #a0a0a0; 
-    cursor: not-allowed; 
-    opacity: 0.6;
-}
+            background-color: #e0e0e0;
+            color: #a0a0a0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
 
         .alert {
             padding: 10px;
@@ -233,15 +237,14 @@
 
             color: #000000;
         }
-    
+
         .alert-success {
             background-color: #abe4b9 !important;
         }
-    
+
         .alert-danger {
             background-color: #f1b1b9 !important;
         }
-        
     </style>
 
 </head>
@@ -273,24 +276,26 @@
         <div class="search-container">
             <h3>Vizualizare Sucursale</h3>
             <div class="add-button-container">
-            <form action="/view_branches" method="GET" style="display: flex;">
-                <div class="search-box">
-                    <input type="text" name="query" placeholder="Caută..." value="{{ request.args.get('query', '') }}">
-                    <button type="submit">
-                        <img src="{{ url_for('static', filename='search-icon.png') }}" alt="Search Icon">
-                    </button>
-                </div>
-                <a href="/create_branch" class="add-button">Adăugare sucursală</a>
-            </form>
+                <form action="/view_branches" method="GET" style="display: flex;">
+                    <div class="search-box">
+                        <input type="text" name="query" placeholder="Caută..."
+                            value="{{ request.args.get('query', '') }}">
+                        <button type="submit">
+                            <img src="{{ url_for('static', filename='search-icon.png') }}" alt="Search Icon">
+                        </button>
+                    </div>
+                    <a href="/create_branch" class="add-button">Adăugare sucursală</a>
+                </form>
             </div>
-            
+
         </div>
         {% if has_branches %}
         <table>
             <thead>
                 <tr>
                     <th class="{% if column == 'sucursala' %}sorted-{{ order }}{% endif %}">
-                        <a href="?column=sucursala&order={{ 'desc' if column == 'sucursala' and order == 'asc' else 'asc' }}">
+                        <a
+                            href="?column=sucursala&order={{ 'desc' if column == 'sucursala' and order == 'asc' else 'asc' }}">
                             Sucursala
                             {% if column == 'sucursala' %}
                             <i class="fas fa-sort-{{ 'down' if order == 'asc' else 'up' }}"></i>
@@ -302,26 +307,30 @@
             </thead>
             <tbody>
                 {% for branch in branches %}
-<tr>
-    <td>{{ branch['sucursala'] }}</td>
-    <td>
-        {% if user_type == 'admin' %}
-        <a href="/edit_branch/{{ branch['sucursala'] }}" class="btn-add">Editare</a>
-        <form action="{{ url_for('delete_branch', sucursala=branch['sucursala']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Sigur dorești să ștergi această sucursală?');">
-            <button type="submit" class="btn-add">Ștergere</button>
-        </form>
-        {% elif user_type == 'contribuitor' %}
-        <a href="/edit_branch/{{ branch['sucursala'] }}" class="btn-add">Editare</a>
-        <form action="{{ url_for('delete_branch', sucursala=branch['sucursala']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Sigur dorești să ștergi această sucursală?');">
-            <button type="submit" class="btn-add">Ștergere</button>
-        </form>
-        {% elif user_type == 'hr' %}
-        <a href="/edit_branch/{{ branch['sucursala'] }}" class="btn-add">Editare</a>
-        <a class="btn-add disabled">Șterge</a>
-        {% endif %}
-    </td>
-</tr>
-{% endfor %}
+                <tr>
+                    <td>{{ branch['sucursala'] }}</td>
+                    <td>
+                        {% if user_type == 'admin' %}
+                        <a href="/edit_branch/{{ branch['sucursala'] }}" class="btn-add">Editare</a>
+                        <form action="{{ url_for('delete_branch', sucursala=branch['sucursala']) }}" method="POST"
+                            style="display:inline;"
+                            onsubmit="return confirm('Sigur dorești să ștergi această sucursală?');">
+                            <button type="submit" class="btn-add">Ștergere</button>
+                        </form>
+                        {% elif user_type == 'contribuitor' %}
+                        <a href="/edit_branch/{{ branch['sucursala'] }}" class="btn-add">Editare</a>
+                        <form action="{{ url_for('delete_branch', sucursala=branch['sucursala']) }}" method="POST"
+                            style="display:inline;"
+                            onsubmit="return confirm('Sigur dorești să ștergi această sucursală?');">
+                            <button type="submit" class="btn-add">Ștergere</button>
+                        </form>
+                        {% elif user_type == 'hr' %}
+                        <a href="/edit_branch/{{ branch['sucursala'] }}" class="btn-add">Editare</a>
+                        <a class="btn-add disabled">Șterge</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
 
             </tbody>
         </table>

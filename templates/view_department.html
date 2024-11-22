@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="ro">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vizualizare Sucursale și Departamente</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-sZwrsfUwWbMzL33yGrO+ZfrL0uZxshD8P1eDB/Jn0fn0FhDzEO6uTosDD/SsGOeU2yn8PDBly7zHJW1P7Ne9MA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+        integrity="sha512-sZwrsfUwWbMzL33yGrO+ZfrL0uZxshD8P1eDB/Jn0fn0FhDzEO6uTosDD/SsGOeU2yn8PDBly7zHJW1P7Ne9MA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-   <style>
+    <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -149,7 +152,7 @@
             padding: 5px 5px 5px 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            margin-left: 0; 
+            margin-left: 0;
         }
 
         .search-box button {
@@ -197,12 +200,13 @@
         .add-button:hover {
             background-color: #a8c4e2;
         }
-        
+
         .add-button-container {
             margin-left: auto;
             display: flex;
             align-items: center;
         }
+
         .btn-add {
             background-color: #c4d1df;
             color: #585858;
@@ -216,28 +220,31 @@
         .btn-add:hover {
             background-color: #a8c4e2;
         }
+
         .btn-add.disabled {
-    background-color: #e0e0e0; 
-    color: #a0a0a0; 
-    cursor: not-allowed; 
-    opacity: 0.6;
-}
+            background-color: #e0e0e0;
+            color: #a0a0a0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
         .alert {
             padding: 10px;
             border-radius: 4px;
 
             color: #000000;
         }
-    
+
         .alert-success {
             background-color: #abe4b9;
         }
-    
+
         .alert-danger {
             background-color: #f1b1b9;
         }
     </style>
 </head>
+
 <body>
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -265,7 +272,8 @@
             <div class="add-button-container">
                 <form action="/view_department" method="GET" style="display: flex;">
                     <div class="search-box">
-                        <input type="text" name="query" placeholder="Caută..." value="{{ request.args.get('query', '') }}">
+                        <input type="text" name="query" placeholder="Caută..."
+                            value="{{ request.args.get('query', '') }}">
                         <button type="submit">
                             <img src="{{ url_for('static', filename='search-icon.png') }}" alt="Search Icon">
                         </button>
@@ -279,7 +287,8 @@
             <thead>
                 <tr>
                     <th class="{% if column == 'sucursala' %}sorted-{{ order }}{% endif %}">
-                        <a href="?column=sucursala&order={{ 'desc' if column == 'sucursala' and order == 'asc' else 'asc' }}">
+                        <a
+                            href="?column=sucursala&order={{ 'desc' if column == 'sucursala' and order == 'asc' else 'asc' }}">
                             Sucursala
                             {% if column == 'sucursala' %}
                             <i class="fas fa-sort-{{ 'down' if order == 'asc' else 'up' }}"></i>
@@ -287,7 +296,8 @@
                         </a>
                     </th>
                     <th class="{% if column == 'departament' %}sorted-{{ order }}{% endif %}">
-                        <a href="?column=departament&order={{ 'desc' if column == 'departament' and order == 'asc' else 'asc' }}">
+                        <a
+                            href="?column=departament&order={{ 'desc' if column == 'departament' and order == 'asc' else 'asc' }}">
                             Departament
                             {% if column == 'departament' %}
                             <i class="fas fa-sort-{{ 'down' if order == 'asc' else 'up' }}"></i>
@@ -305,13 +315,20 @@
                     <td>{{ branch['departament'] }}</td>
                     <td>
                         {% if user_type == 'admin' %}
-                        <a href="/edit_department/{{ branch['sucursala'] }}/{{ branch['departament'] }}" class="btn-add">Editare</a>
-                        <a href="/delete_department/{{ branch['sucursala'] }}/{{ branch['departament'] }}" onclick="return confirm('Sigur dorești să ștergi acest departament?')" class="btn-add">Ștergere</a>
+                        <a href="/edit_department/{{ branch['sucursala'] }}/{{ branch['departament'] }}"
+                            class="btn-add">Editare</a>
+                        <a href="/delete_department/{{ branch['sucursala'] }}/{{ branch['departament'] }}"
+                            onclick="return confirm('Sigur dorești să ștergi acest departament?')"
+                            class="btn-add">Ștergere</a>
                         {% elif user_type == 'contribuitor' %}
-                        <a href="/edit_department/{{ branch['sucursala'] }}/{{ branch['departament'] }}" class="btn-add">Editare</a>
-                        <a href="/delete_department/{{ branch['sucursala'] }}/{{ branch['departament'] }}" onclick="return confirm('Sigur dorești să ștergi acest departament?')" class="btn-add">Ștergere</a>
+                        <a href="/edit_department/{{ branch['sucursala'] }}/{{ branch['departament'] }}"
+                            class="btn-add">Editare</a>
+                        <a href="/delete_department/{{ branch['sucursala'] }}/{{ branch['departament'] }}"
+                            onclick="return confirm('Sigur dorești să ștergi acest departament?')"
+                            class="btn-add">Ștergere</a>
                         {% elif user_type == 'hr' %}
-                        <a href="/edit_department/{{ branch['sucursala'] }}/{{ branch['departament'] }}" class="btn-add">Editare</a>
+                        <a href="/edit_department/{{ branch['sucursala'] }}/{{ branch['departament'] }}"
+                            class="btn-add">Editare</a>
                         <a class="btn-add disabled">Șterge</a>
                         {% endif %}
                     </td>
@@ -324,4 +341,5 @@
         {% endif %}
     </div>
 </body>
+
 </html>

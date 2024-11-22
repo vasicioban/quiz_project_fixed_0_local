@@ -142,7 +142,8 @@
                         {% for answer in question.answers %}
                         <div class="answer">
                             <label>
-                                <input type="checkbox" name="question_{{ question_id }}[]" value="{{ answer.answer_id }}">
+                                <input type="checkbox" name="question_{{ question_id }}[]"
+                                    value="{{ answer.answer_id }}">
                                 {{ answer.answer_text }}
                             </label>
                         </div>

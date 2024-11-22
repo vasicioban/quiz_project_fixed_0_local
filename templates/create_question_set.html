@@ -208,7 +208,7 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-        
+
         .save-button {
             max-width: 70px;
             margin: 20px auto 0;
@@ -225,209 +225,210 @@
         .save-button:hover {
             background-color: #0056b3;
         }
-        
-        .back-link-container {
-    text-align: center;
-    margin-top: 20px;
-}
 
-.back-link {
-    display: inline-block;
-    padding: 10px 20px;
-   
-}
+        .back-link-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            padding: 10px 20px;
+
+        }
     </style>
 
-<head>
-    <title>Creare Set Întrebări</title>
-    <script>
-        function updateAnswerInputs(answerCount, parentElement) {
-            const answerContainer = parentElement.querySelector('.answer-container');
-            const questionIndex = [...parentElement.parentElement.children].indexOf(parentElement);
-            
-            // Save current answers and scores
-            const currentAnswers = [];
-            const currentScores = [];
-            const answerDivs = answerContainer.querySelectorAll('.answer');
-            answerDivs.forEach((answerDiv, index) => {
-                const answerInput = answerDiv.querySelector(`input[name="questions[${questionIndex}][answers][${index}][answer]"]`);
-                const scoreInput = answerDiv.querySelector(`input[name="questions[${questionIndex}][answers][${index}][score]"]`);
-                currentAnswers.push(answerInput ? answerInput.value : '');
-                currentScores.push(scoreInput ? scoreInput.value : '0');
-            });
+    <head>
+        <title>Creare Set Întrebări</title>
+        <script>
+            function updateAnswerInputs(answerCount, parentElement) {
+                const answerContainer = parentElement.querySelector('.answer-container');
+                const questionIndex = [...parentElement.parentElement.children].indexOf(parentElement);
 
-            answerContainer.innerHTML = '';
-            let totalScore = 0;
+                // Save current answers and scores
+                const currentAnswers = [];
+                const currentScores = [];
+                const answerDivs = answerContainer.querySelectorAll('.answer');
+                answerDivs.forEach((answerDiv, index) => {
+                    const answerInput = answerDiv.querySelector(`input[name="questions[${questionIndex}][answers][${index}][answer]"]`);
+                    const scoreInput = answerDiv.querySelector(`input[name="questions[${questionIndex}][answers][${index}][score]"]`);
+                    currentAnswers.push(answerInput ? answerInput.value : '');
+                    currentScores.push(scoreInput ? scoreInput.value : '0');
+                });
 
-            for (let i = 0; i < answerCount; i++) {
-                const answerDiv = document.createElement('div');
-                answerDiv.classList.add('answer');
+                answerContainer.innerHTML = '';
+                let totalScore = 0;
 
-                const answerInlineLabel = document.createElement('div');
-                answerInlineLabel.classList.add('inline-label');
+                for (let i = 0; i < answerCount; i++) {
+                    const answerDiv = document.createElement('div');
+                    answerDiv.classList.add('answer');
 
-                const answerLabel = document.createElement('label');
-                answerLabel.textContent = `Răspuns ${i + 1}:`;
+                    const answerInlineLabel = document.createElement('div');
+                    answerInlineLabel.classList.add('inline-label');
 
-                const answerInput = document.createElement('input');
-                answerInput.type = 'text';
-                answerInput.name = `questions[${questionIndex}][answers][${i}][answer]`;
-                answerInput.required = true;
-                answerInput.value = currentAnswers[i] || '';
+                    const answerLabel = document.createElement('label');
+                    answerLabel.textContent = `Răspuns ${i + 1}:`;
 
-                const scoreContainer = document.createElement('div');
-                scoreContainer.classList.add('score-container');
+                    const answerInput = document.createElement('input');
+                    answerInput.type = 'text';
+                    answerInput.name = `questions[${questionIndex}][answers][${i}][answer]`;
+                    answerInput.required = true;
+                    answerInput.value = currentAnswers[i] || '';
 
-                const scoreLabel = document.createElement('label');
-                scoreLabel.textContent = 'Punctaj:';
+                    const scoreContainer = document.createElement('div');
+                    scoreContainer.classList.add('score-container');
 
-                const scoreInput = document.createElement('input');
-                scoreInput.type = 'number';
-                scoreInput.name = `questions[${questionIndex}][answers][${i}][score]`;
-                scoreInput.min = '0';
-                scoreInput.max = '5';
-                scoreInput.value = currentScores[i] || '0';
-                scoreInput.required = true;
+                    const scoreLabel = document.createElement('label');
+                    scoreLabel.textContent = 'Punctaj:';
 
-                scoreInput.addEventListener('input', function () {
-                    totalScore = 0;
-                    const scores = parentElement.querySelectorAll('.answer input[type="number"]');
-                    scores.forEach(function (score) {
-                        totalScore += parseInt(score.value) || 0;
+                    const scoreInput = document.createElement('input');
+                    scoreInput.type = 'number';
+                    scoreInput.name = `questions[${questionIndex}][answers][${i}][score]`;
+                    scoreInput.min = '0';
+                    scoreInput.max = '5';
+                    scoreInput.value = currentScores[i] || '0';
+                    scoreInput.required = true;
+
+                    scoreInput.addEventListener('input', function () {
+                        totalScore = 0;
+                        const scores = parentElement.querySelectorAll('.answer input[type="number"]');
+                        scores.forEach(function (score) {
+                            totalScore += parseInt(score.value) || 0;
+                        });
+                        if (totalScore > 5) {
+                            this.value = 5 - (totalScore - parseInt(this.value));
+                        }
                     });
-                    if (totalScore > 5) {
-                        this.value = 5 - (totalScore - parseInt(this.value));
-                    }
-                });
 
-                scoreContainer.appendChild(scoreLabel);
-                scoreContainer.appendChild(scoreInput);
-                answerInlineLabel.appendChild(answerLabel);
-                answerInlineLabel.appendChild(answerInput);
-                answerInlineLabel.appendChild(scoreContainer);
+                    scoreContainer.appendChild(scoreLabel);
+                    scoreContainer.appendChild(scoreInput);
+                    answerInlineLabel.appendChild(answerLabel);
+                    answerInlineLabel.appendChild(answerInput);
+                    answerInlineLabel.appendChild(scoreContainer);
 
-                answerDiv.appendChild(answerInlineLabel);
-                answerContainer.appendChild(answerDiv);
-            }
-        }
-
-        function validateForm() {
-            const idSetInput = document.getElementById('id_set');
-            const numeSetInput = document.getElementById('nume_set');
-
-            if (!idSetInput.value.trim()) {
-                alert("Te rugăm să introduci un ID pentru setul de întrebări.");
-                return false;
+                    answerDiv.appendChild(answerInlineLabel);
+                    answerContainer.appendChild(answerDiv);
+                }
             }
 
-            if (!numeSetInput.value.trim()) {
-                alert("Te rugăm să introduci un nume pentru setul de întrebări.");
-                return false;
-            }
+            function validateForm() {
+                const idSetInput = document.getElementById('id_set');
+                const numeSetInput = document.getElementById('nume_set');
 
-            const questions = document.querySelectorAll('.question');
-            let totalScore = 0;
-
-            for (const question of questions) {
-                const questionInput = question.querySelector('input[type="text"]');
-                if (!questionInput.value.trim()) {
-                    alert("Toate întrebările trebuie să aibă un text.");
+                if (!idSetInput.value.trim()) {
+                    alert("Te rugăm să introduci un ID pentru setul de întrebări.");
                     return false;
                 }
 
-                const answers = question.querySelectorAll('.answer');
-                let questionTotalScore = 0;
-                for (const answer of answers) {
-                    const answerInput = answer.querySelector('input[type="text"]');
-                    const scoreInput = answer.querySelector('input[type="number"]');
-                    if (!answerInput.value.trim()) {
-                        alert("Toate răspunsurile trebuie să aibă un text.");
-                        return false;
-                    }
-                    if (!scoreInput.value.trim()) {
-                        alert("Toate răspunsurile trebuie să aibă un punctaj.");
-                        return false;
-                    }
-                    questionTotalScore += parseInt(scoreInput.value);
-                }
-
-                if (questionTotalScore > 5) {
-                    alert(`Suma punctajelor pentru fiecare întrebare trebuie să fie de maxim 5. Întrebarea are ${questionTotalScore} puncte.`);
+                if (!numeSetInput.value.trim()) {
+                    alert("Te rugăm să introduci un nume pentru setul de întrebări.");
                     return false;
                 }
 
-                totalScore += questionTotalScore;
+                const questions = document.querySelectorAll('.question');
+                let totalScore = 0;
+
+                for (const question of questions) {
+                    const questionInput = question.querySelector('input[type="text"]');
+                    if (!questionInput.value.trim()) {
+                        alert("Toate întrebările trebuie să aibă un text.");
+                        return false;
+                    }
+
+                    const answers = question.querySelectorAll('.answer');
+                    let questionTotalScore = 0;
+                    for (const answer of answers) {
+                        const answerInput = answer.querySelector('input[type="text"]');
+                        const scoreInput = answer.querySelector('input[type="number"]');
+                        if (!answerInput.value.trim()) {
+                            alert("Toate răspunsurile trebuie să aibă un text.");
+                            return false;
+                        }
+                        if (!scoreInput.value.trim()) {
+                            alert("Toate răspunsurile trebuie să aibă un punctaj.");
+                            return false;
+                        }
+                        questionTotalScore += parseInt(scoreInput.value);
+                    }
+
+                    if (questionTotalScore > 5) {
+                        alert(`Suma punctajelor pentru fiecare întrebare trebuie să fie de maxim 5. Întrebarea are ${questionTotalScore} puncte.`);
+                        return false;
+                    }
+
+                    totalScore += questionTotalScore;
+                }
+
+                if (totalScore !== 90) {
+                    alert(`Suma punctajelor pentru toate întrebările trebuie să fie 90. Suma curentă este ${totalScore}.`);
+                    return false;
+                }
+
+                return true;
             }
 
-            if (totalScore !== 90) {
-                alert(`Suma punctajelor pentru toate întrebările trebuie să fie 90. Suma curentă este ${totalScore}.`);
-                return false;
-            }
+            document.addEventListener('DOMContentLoaded', function () {
+                const questionContainer = document.getElementById('question-container');
 
-            return true;
-        }
+                for (let i = 1; i <= 18; i++) {
+                    const questionDiv = document.createElement('div');
+                    questionDiv.classList.add('question');
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const questionContainer = document.getElementById('question-container');
+                    const questionLabel = document.createElement('label');
+                    questionLabel.textContent = `Întrebare ${i}:`;
 
-            for (let i = 1; i <= 18; i++) {
-                const questionDiv = document.createElement('div');
-                questionDiv.classList.add('question');
+                    const questionInput = document.createElement('input');
+                    questionInput.type = 'text';
+                    questionInput.name = `questions[${i - 1}][question]`;
 
-                const questionLabel = document.createElement('label');
-                questionLabel.textContent = `Întrebare ${i}:`;
+                    const answerCountDiv = document.createElement('div');
+                    answerCountDiv.classList.add('inline-label');
 
-                const questionInput = document.createElement('input');
-                questionInput.type = 'text';
-                questionInput.name = `questions[${i - 1}][question]`;
+                    const answerCountLabel = document.createElement('label');
+                    answerCountLabel.textContent = 'Număr de răspunsuri:';
 
-                const answerCountDiv = document.createElement('div');
-                answerCountDiv.classList.add('inline-label');
+                    const answerCountSelect = document.createElement('select');
+                    answerCountSelect.name = `questions[${i - 1}][answer_count]`;
+                    answerCountSelect.addEventListener('change', function () {
+                        updateAnswerInputs(this.value, questionDiv);
+                    });
 
-                const answerCountLabel = document.createElement('label');
-                answerCountLabel.textContent = 'Număr de răspunsuri:';
+                    const option0 = document.createElement('option');
+                    option0.value = 0;
+                    option0.text = 0;
+                    option0.selected = true;
+                    answerCountSelect.add(option0);
 
-                const answerCountSelect = document.createElement('select');
-                answerCountSelect.name = `questions[${i - 1}][answer_count]`;
-                answerCountSelect.addEventListener('change', function () {
-                    updateAnswerInputs(this.value, questionDiv);
+                    for (let j = 3; j <= 6; j++) {
+                        const option = document.createElement('option');
+                        option.value = j;
+                        option.text = j;
+                        answerCountSelect.add(option);
+                    }
+
+                    const answerContainer = document.createElement('div');
+                    answerContainer.classList.add('answer-container');
+
+                    questionDiv.appendChild(questionLabel);
+                    questionDiv.appendChild(questionInput);
+                    answerCountDiv.appendChild(answerCountLabel);
+                    answerCountDiv.appendChild(answerCountSelect);
+                    questionDiv.appendChild(answerCountDiv);
+                    questionDiv.appendChild(answerContainer);
+
+                    questionContainer.appendChild(questionDiv);
+                }
+
+                const form = document.querySelector('.create-question-set-container form');
+                form.addEventListener('submit', function (event) {
+                    if (!validateForm()) {
+                        event.preventDefault();
+                    }
                 });
-
-                const option0 = document.createElement('option');
-                option0.value = 0;
-                option0.text = 0;
-                option0.selected = true;
-                answerCountSelect.add(option0);
-
-                for (let j = 3; j <= 6; j++) {
-                    const option = document.createElement('option');
-                    option.value = j;
-                    option.text = j;
-                    answerCountSelect.add(option);
-                }
-
-                const answerContainer = document.createElement('div');
-                answerContainer.classList.add('answer-container');
-
-                questionDiv.appendChild(questionLabel);
-                questionDiv.appendChild(questionInput);
-                answerCountDiv.appendChild(answerCountLabel);
-                answerCountDiv.appendChild(answerCountSelect);
-                questionDiv.appendChild(answerCountDiv);
-                questionDiv.appendChild(answerContainer);
-
-                questionContainer.appendChild(questionDiv);
-            }
-
-            const form = document.querySelector('.create-question-set-container form');
-            form.addEventListener('submit', function (event) {
-                if (!validateForm()) {
-                    event.preventDefault();
-                }
             });
-        });
-    </script>
-</head>
+        </script>
+    </head>
+
 <body>
     {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -466,4 +467,5 @@
         </form>
     </div>
 </body>
+
 </html>

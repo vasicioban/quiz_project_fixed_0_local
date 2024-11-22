@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ro">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
             color: gray;
             pointer-events: none;
         }
+
         .header {
             background-color: #007bff;
             color: #fff;
@@ -23,11 +25,12 @@
             font-size: 24px;
             margin-left: 10px;
         }
+
         .logo-title-container {
             display: flex;
             align-items: center;
         }
-       
+
 
         .logo-title-container a {
             color: white;
@@ -35,12 +38,14 @@
             text-decoration: none;
             font-weight: bold;
         }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f2f2f2;
         }
+
         .user-info a {
             color: #fff;
             text-decoration: none;
@@ -101,15 +106,15 @@
             border-radius: 4px;
             color: #000000;
         }
-    
+
         .alert-success {
             background-color: #abe4b9;
         }
-    
+
         .alert-danger {
             background-color: #f1b1b9;
         }
-        
+
         .contest-container {
             max-width: 600px;
             margin: 50px auto;
@@ -128,6 +133,7 @@
             margin: 20px 0;
             text-align: center;
         }
+
         .contest-container button {
             width: 100%;
             padding: 10px;
@@ -137,7 +143,7 @@
             color: #fff;
             font-size: 16px;
             cursor: pointer;
-            
+
             transition: background-color 0.3s, box-shadow 0.3s;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
@@ -148,34 +154,33 @@
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
         }
 
-        
+
         .contest-container button.disabled {
             background-color: gray;
             cursor: not-allowed;
             box-shadow: none;
         }
 
-       
+
         .contest-container button.disabled:hover {
             background-color: gray;
             box-shadow: none;
         }
-
-        
-
     </style>
 </head>
+
 <body>
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     {% for category, message in messages %}
-    <div class="alert {% if category == 'danger' %}alert-danger{% elif category == 'success' %}alert-success{% endif %}">
+    <div
+        class="alert {% if category == 'danger' %}alert-danger{% elif category == 'success' %}alert-success{% endif %}">
         {{ message }}
     </div>
     {% endfor %}
     {% endif %}
     {% endwith %}
-    
+
     <div class="header">
         <div class="logo-title-container">
             <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px;">
@@ -191,23 +196,23 @@
         <h2>Concurs: {{ id_concurs }}</h2>
 
         {% if quizzes and quizzes|length > 0 %}
-            <form action="{{ url_for('solve_quiz', id_chestionar=quizzes[0][0]) }}" method="GET" id="standard_quiz">
-                <button type="submit" class="disabled" disabled>
-                    Începe Testul Standard
-                </button>
-            </form>
+        <form action="{{ url_for('solve_quiz', id_chestionar=quizzes[0][0]) }}" method="GET" id="standard_quiz">
+            <button type="submit" class="disabled" disabled>
+                Începe Testul Standard
+            </button>
+        </form>
         {% else %}
-            <p>Nu există un chestionar standard disponibil pentru acest concurs.</p>
+        <p>Nu există un chestionar standard disponibil pentru acest concurs.</p>
         {% endif %}
 
         {% if standard_completed and quizzes|length > 1 %}
-            <form action="{{ url_for('solve_quiz', id_chestionar=quizzes[1][0]) }}" method="GET" id="reserve_quiz">
-                <button type="submit" class="disabled" disabled>
-                    Începe Testul de Rezervă
-                </button>
-            </form>
+        <form action="{{ url_for('solve_quiz', id_chestionar=quizzes[1][0]) }}" method="GET" id="reserve_quiz">
+            <button type="submit" class="disabled" disabled>
+                Începe Testul de Rezervă
+            </button>
+        </form>
         {% elif standard_completed %}
-            <p>Nu există un chestionar de rezervă disponibil pentru acest concurs.</p>
+        <p>Nu există un chestionar de rezervă disponibil pentru acest concurs.</p>
         {% endif %}
     </div>
     <script>
@@ -219,13 +224,13 @@
                 enable_buttons();
                 return;
             }
-            
+
             // test cannot start yet
-            let time_left = (contest_start_time - server_current_time)/1000;
-            
+            let time_left = (contest_start_time - server_current_time) / 1000;
+
             let container = document.querySelector(".contest-container");
             container.innerHTML += `<p id="timer-info">Timp rămas: <span id="timer">${seconds_to_hms(time_left)}</span></p>`;
-            
+
             let timer = document.querySelector("#timer");
             interval_id = setInterval(() => {
                 if (time_left <= 0) {
@@ -234,7 +239,7 @@
                     container.removeChild(document.querySelector("#timer-info"));
                     enable_buttons();
                 }
-                
+
                 time_left -= 1;
                 timer.innerText = seconds_to_hms(time_left);
             }, 1000);
@@ -243,7 +248,7 @@
         function seconds_to_hms(seconds) {
             const HOURS_PER_DAY = 24;
             const SECONDS_PER_DAY = 3600 * HOURS_PER_DAY;
-            
+
             const days = Math.floor(seconds / SECONDS_PER_DAY);
             const remainderSeconds = seconds % SECONDS_PER_DAY;
             const hms = new Date(remainderSeconds * 1000).toISOString().substring(11, 19);
@@ -269,4 +274,5 @@
         document.body.onload = check_start_time();
     </script>
 </body>
+
 </html>

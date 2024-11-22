@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Creare Sucursală și Departamente</title>
     <style>
-         body {
+        body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
@@ -56,7 +56,7 @@
         .user-info a:hover {
             background-color: #004080;
         }
-        
+
         .create-branch-department-container {
             max-width: 500px;
             margin: 50px auto;
@@ -153,17 +153,17 @@
         .save-button:hover {
             background-color: #0056b3;
         }
-        
-        .back-link-container {
-    text-align: center;
-    margin-top: 20px;
-}
 
-.back-link {
-    display: inline-block;
-    padding: 10px 20px;
-   
-}
+        .back-link-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            padding: 10px 20px;
+
+        }
     </style>
 </head>
 
@@ -206,16 +206,17 @@
             <div id="department-fields">
                 <div class="form-group">
                     <label for="department">Departament:</label>
-                    <input type="text" class="department-input form-control" name="department[]" placeholder="Nume departament" required>
+                    <input type="text" class="department-input form-control" name="department[]"
+                        placeholder="Nume departament" required>
                     <button type="button" class="add-department">Adăugare</button>
                 </div>
             </div>
             <button type="submit" class="save-button">Salvare</button>
             <div class="back-link-container">
                 <a href="/view_department" class="back-link">Înapoi</a>
-        </div>
+            </div>
         </form>
-       
+
     </div>
 
     <script>

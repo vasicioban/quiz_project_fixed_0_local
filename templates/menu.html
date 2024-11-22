@@ -50,7 +50,7 @@
 
         .user-info button:hover {
             background-color: #004080;
-i        }
+        }
 
         .logo-title-container a {
             color: white;
@@ -111,25 +111,27 @@ i        }
 
 <!DOCTYPE html>
 <html lang="ro">
+
 <head>
     <meta charset="UTF-8">
     <title>Meniu</title>
 </head>
+
 <body>
     <script>
         function logout() {
             stop_recording()
-            .then(() => {
-                // setTimeout(() => {
-                //     console.log("Redirecting...");
-                // }, 1000);
-                window.location.href = "{{ url_for('logout') }}";
-            })
-            .catch(error => {
-                console.error("Error during logout or stop recording: ", error);
-            })
+                .then(() => {
+                    // setTimeout(() => {
+                    //     console.log("Redirecting...");
+                    // }, 1000);
+                    window.location.href = "{{ url_for('logout') }}";
+                })
+                .catch(error => {
+                    console.error("Error during logout or stop recording: ", error);
+                })
         }
-        
+
         function stop_recording() {
             return fetch("http://localhost:5055/stop")  // Return the fetch promise
                 .then(response => {
@@ -179,13 +181,13 @@ i        }
             <li><a href="{{ url_for('view_contestants') }}">Concurenți</a></li>
             {% endif %}
             {% if user_type == 'concurent' %}
-                {% if assigned_contests %}
-                    {% for contest in assigned_contests %}
-                    <li><a href="{{ url_for('view_contest', id_concurs=contest[0]) }}">{{ contest[1] }}</a></li>
-                    {% endfor %}
-                {% else %}
-                    <li>Nu aveți asignat niciun concurs în acest moment.</li>
-                {% endif %}
+            {% if assigned_contests %}
+            {% for contest in assigned_contests %}
+            <li><a href="{{ url_for('view_contest', id_concurs=contest[0]) }}">{{ contest[1] }}</a></li>
+            {% endfor %}
+            {% else %}
+            <li>Nu aveți asignat niciun concurs în acest moment.</li>
+            {% endif %}
             {% endif %}
         </ul>
     </div>
@@ -196,5 +198,3 @@ i        }
 
 
 </html>
-
-

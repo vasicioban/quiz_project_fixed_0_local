@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 CORS(app)
 app.secret_key = "your_secret_key"
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 
 
 @app.after_request
@@ -35,7 +35,7 @@ def apply_csp(response):
     # Re-request page when pressing back in the browser
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response.headers["Expires"] = "0"
-    
+
     return response
 
 
@@ -2543,15 +2543,17 @@ def solve_quiz(id_chestionar):
                     )
                     total_score = cursor.fetchone()[0]
 
-                    return jsonify({"new_url":
-                        url_for(
-                            "test_report",
-                            id_concurs=id_concurs,
-                            id_set=id_chestionar,
-                            username=username,
-                            total_score=total_score,
-                        )
-                    })
+                    return jsonify(
+                        {
+                            "new_url": url_for(
+                                "test_report",
+                                id_concurs=id_concurs,
+                                id_set=id_chestionar,
+                                username=username,
+                                total_score=total_score,
+                            )
+                        }
+                    )
 
                 cursor.execute(
                     """
@@ -2584,14 +2586,16 @@ def solve_quiz(id_chestionar):
 
             connection.commit()
 
-            return jsonify({"new_url": 
-                url_for(
-                    "test_report",
-                    id_concurs=id_concurs,
-                    id_set=id_chestionar,
-                    username=username,
-                    total_score=total_score,
-                )}
+            return jsonify(
+                {
+                    "new_url": url_for(
+                        "test_report",
+                        id_concurs=id_concurs,
+                        id_set=id_chestionar,
+                        username=username,
+                        total_score=total_score,
+                    )
+                }
             )
 
         except (Exception, psycopg2.Error) as error:
@@ -2884,7 +2888,14 @@ def test_report(id_concurs, id_set, username, total_score):
 
             connection.commit()
 
-            return jsonify({"status": "PDF saved successfully", "redirect_url": (url_for("view_contest", id_concurs=str(id_concurs)))})
+            return jsonify(
+                {
+                    "status": "PDF saved successfully",
+                    "redirect_url": (
+                        url_for("view_contest", id_concurs=str(id_concurs))
+                    ),
+                }
+            )
 
         except (Exception, psycopg2.Error) as error:
             print("Eroare la salvarea raportului PDF:", error)
