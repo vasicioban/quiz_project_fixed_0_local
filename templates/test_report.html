@@ -140,6 +140,11 @@
 
 
     <script>
+        window.history.pushState(null, "", window.location.href);
+        window.onpopstate = () => {
+            window.location.href = "/contest/{{ id_concurs }}"
+        };
+
         document.getElementById('downloadPDF2').addEventListener('click', function () {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'pt', 'a4');

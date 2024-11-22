@@ -2438,6 +2438,8 @@ def solve_quiz(id_chestionar):
         end_time = request.form.get("end_time")
         print("received end_time", str(end_time))
 
+        print(answers)
+
         try:
             connection = psycopg2.connect(
                 user="postgres",
@@ -2543,16 +2545,14 @@ def solve_quiz(id_chestionar):
                     )
                     total_score = cursor.fetchone()[0]
 
-                    return jsonify(
-                        {
-                            "new_url": url_for(
-                                "test_report",
-                                id_concurs=id_concurs,
-                                id_set=id_chestionar,
-                                username=username,
-                                total_score=total_score,
-                            )
-                        }
+                    return redirect(
+                        url_for(
+                            "test_report",
+                            id_concurs=id_concurs,
+                            id_set=id_chestionar,
+                            username=username,
+                            total_score=total_score,
+                        )
                     )
 
                 cursor.execute(
@@ -2586,22 +2586,20 @@ def solve_quiz(id_chestionar):
 
             connection.commit()
 
-            return jsonify(
-                {
-                    "new_url": url_for(
-                        "test_report",
-                        id_concurs=id_concurs,
-                        id_set=id_chestionar,
-                        username=username,
-                        total_score=total_score,
-                    )
-                }
+            return redirect(
+                url_for(
+                    "test_report",
+                    id_concurs=id_concurs,
+                    id_set=id_chestionar,
+                    username=username,
+                    total_score=total_score,
+                )
             )
 
         except (Exception, psycopg2.Error) as error:
             print("Eroare la salvarea răspunsurilor:", error)
             flash(f"A intervenit o eroare: {error}", "danger")
-            return jsonify({"new_url": url_for("menu")})
+            return redirect(url_for("menu"))
         finally:
             if connection:
                 cursor.close()
