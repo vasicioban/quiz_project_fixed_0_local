@@ -217,7 +217,7 @@
             <button type="button" id="skip-btn" onclick="skipQuestion()">Sari Întrebarea</button>
         </div>
         <div class="submit-button">
-            <button type="submit" id="submit-btn" class="disabled" onclick="submit_form()" disabled>Trimite Testul</button>
+            <button type="submit" id="submit-btn" class="disabled" disabled>Trimite Testul</button>
         </div>
     </form>
     
@@ -331,13 +331,22 @@
         function submit_form(event = null) {
             if (event)
                 event.preventDefault();
+
             const form = document.querySelector("#test-form");
-            const input = document.createElement("input");
-            input.setAttribute("name", "end_time")
-            input.setAttribute("value", new Date().toISOString());
-            form.appendChild(input);
-            form.submit();
+            formData = new FormData(form);
+            formData.set("end_time", new Date().toISOString());
+
+            fetch("/solve_quiz/{{id_concurs}}", {
+                method: "POST",
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                window.location.replace(data.new_url);
+            }).catch(console.error);
         }
+
+        document.querySelector("#test-form").addEventListener("submit", submit_form);
 
         function seconds_to_hms(seconds) {
             const HOURS_PER_DAY = 24;
