@@ -419,46 +419,48 @@ def edit_contestant(id):
                 database="postgres",
             )
             cursor = conn.cursor()
-
             cursor.execute("BEGIN;")
 
-            cursor.execute(
-                "DELETE FROM participanti_concurs WHERE username = %s", (old_username,)
-            )
-            cursor.execute(
-                "DELETE FROM participanti_raspuns WHERE username = %s", (old_username,)
-            )
-            cursor.execute(
-                "DELETE FROM participanti_scoruri WHERE username = %s", (old_username,)
-            )
-
+            # get password
+            hashed_password = ""
+            # new password -> hash
             if password:
                 hashed_password = bcrypt.hashpw(
                     password.encode("utf-8"), bcrypt.gensalt()
                 )
-                cursor.execute(
-                    """
-                    UPDATE concurenti
-                    SET username = %s, password = %s, user_type = %s
-                    WHERE id = %s
-                """,
-                    (new_username, hashed_password.decode("utf-8"), user_type, id),
-                )
+            # get old_username's password
             else:
                 cursor.execute(
+                    "SELECT password FROM concurenti WHERE username = %s", (old_username,)
+                )
+                hashed_password = cursor.fetchone()[0]
+
+            # update username
+            if new_username != old_username:
+                # create new user
+                cursor.execute(
+                    "UPDATE concurenti SET username = %s WHERE username = %s",
+                    (new_username, old_username)
+                )
+
+            # username did not change, but password did
+            elif password:
+                cursor.execute(
                     """
                     UPDATE concurenti
-                    SET username = %s, user_type = %s
+                    SET password = %s
                     WHERE id = %s
                 """,
-                    (new_username, user_type, id),
+                    (hashed_password.decode("utf-8"), id),
                 )
+
 
             for contest_id in selected_contests:
                 cursor.execute(
                     """
                     INSERT INTO participanti_concurs (id_concurs, username)
                     VALUES (%s, %s)
+                    ON CONFLICT DO NOTHING
                 """,
                     (contest_id, new_username),
                 )
