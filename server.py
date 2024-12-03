@@ -454,16 +454,37 @@ def edit_contestant(id):
                     (hashed_password.decode("utf-8"), id),
                 )
 
+            # fetch current contests assigned to the user
+            cursor.execute(
+                "SELECT id_concurs FROM participanti_concurs WHERE username = %s", (new_username,)
+            )
+            current_contests = set(row[0] for row in cursor.fetchall())
 
-            for contest_id in selected_contests:
+            # Convert selected_contests to a set of integers
+            selected_contests_set = set(map(int, selected_contests))
+
+            # Determine contests to add and remove
+            contests_to_remove = current_contests - selected_contests_set
+            contests_to_add = selected_contests_set - current_contests
+
+            # Remove contests that are no longer selected
+            if contests_to_remove:
                 cursor.execute(
-                    """
-                    INSERT INTO participanti_concurs (id_concurs, username)
-                    VALUES (%s, %s)
-                    ON CONFLICT DO NOTHING
-                """,
-                    (contest_id, new_username),
+                    "DELETE FROM participanti_concurs WHERE username = %s AND id_concurs IN %s",
+                    (new_username, tuple(contests_to_remove)),
                 )
+
+            # Add new contests
+            if contests_to_add:
+                for contest_id in contests_to_add:
+                    cursor.execute(
+                        """
+                        INSERT INTO participanti_concurs (id_concurs, username)
+                        VALUES (%s, %s)
+                        ON CONFLICT DO NOTHING
+                        """,
+                        (contest_id, new_username),
+                    )
 
             conn.commit()
 
