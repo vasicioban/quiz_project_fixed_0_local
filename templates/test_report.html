@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='robotoRegularBase64.js') }}"></script>
+
     <title>Raport Test</title>
     <style>
         body {
@@ -124,8 +126,7 @@
                 <h3>{{ loop.index }}. {{ question.question_text }} - Punctaj: {{ question.total_score }}</h3>
                 <div class="answers">
                     {% for answer in question.answers %}
-                    <div
-                        class="answer {% if answer.selected and answer.is_correct %}correct-answer{% elif answer.selected and not answer.is_correct %}incorrect-answer{% else %}unselected-answer{% endif %}">
+                    <div class="answer {% if answer.selected %}font-weight-bold{% endif %}">
                         {{ answer.answer_text }} - Punctaj: {{ answer.score }}p
                     </div>
                     {% endfor %}
@@ -142,7 +143,7 @@
     <script>
         window.history.pushState(null, "", window.location.href);
         window.onpopstate = () => {
-            window.location.href = "/contest/{{ id_concurs }}"
+            window.location.href = "/contest/{{ id_concurs }}";
         };
 
         document.getElementById('downloadPDF2').addEventListener('click', function () {
@@ -151,7 +152,6 @@
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
             const margin = 40;
-            const questionPadding = 20;
             let y = margin;
 
             const totalScore = document.getElementById('total-score').textContent;
@@ -167,6 +167,10 @@
                 const aspectRatio = img.width / img.height;
                 const newLogoHeight = logoHeight;
                 const newLogoWidth = newLogoHeight * aspectRatio;
+
+                pdf.addFileToVFS("Roboto-Regular.ttf", robotoRegularBase64);
+                pdf.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+                pdf.setFont("Roboto");
 
                 pdf.addImage(img, 'JPEG', margin, margin, newLogoWidth, newLogoHeight);
 
@@ -200,12 +204,12 @@
                     }
 
                     pdf.setFontSize(10);
-                    pdf.text(questionText, margin, y);
+                    const questionLines = pdf.splitTextToSize(questionText, pdfWidth - 2 * margin);
+                    pdf.text(questionLines, margin, y);
                     y += 15;
 
                     answers.forEach(answerElement => {
                         const answerText = answerElement.textContent;
-                        const isCorrect = answerElement.classList.contains('correct-answer');
 
                         if (y + 20 > pdfHeight - margin) {
                             pdf.addPage();
@@ -213,22 +217,20 @@
                         }
 
                         pdf.setFontSize(10);
-                        pdf.setTextColor(isCorrect ? 'green' : 'red');
-                        pdf.text(answerText, margin + 20, y);
-                        y += 15;
+                        const answerLines = pdf.splitTextToSize(answerText, pdfWidth - 2 * margin);
+                        pdf.text(answerLines, margin + 20, y);
+                        y += 25;
                     });
 
-                    y += questionPadding;
-                    pdf.setTextColor('black');
+                    y += 20;
                 });
 
-                // Salvare locală
                 pdf.save(`raport_concurs_${idConcurs}_${user}.pdf`);
 
-                // Convertire PDF în blob pentru a trimite la server
+
                 const blob = pdf.output('blob');
 
-                // Trimite PDF-ul la server
+
                 const formData = new FormData();
                 formData.append('pdf_file', blob, `raport_concurs_${idConcurs}_${user}.pdf`);
 
@@ -246,11 +248,12 @@
                     .catch(error => {
                         console.error('Eroare la salvarea PDF-ului:', error);
                     });
+
+                window.location.href = "{{ url_for('menu', id_concurs=id_concurs) }}";
+
             };
         });
     </script>
-
-
 </body>
 
 </html>

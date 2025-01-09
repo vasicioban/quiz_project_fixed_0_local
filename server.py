@@ -431,7 +431,8 @@ def edit_contestant(id):
             # get old_username's password
             else:
                 cursor.execute(
-                    "SELECT password FROM concurenti WHERE username = %s", (old_username,)
+                    "SELECT password FROM concurenti WHERE username = %s",
+                    (old_username,),
                 )
                 hashed_password = cursor.fetchone()[0]
 
@@ -440,7 +441,7 @@ def edit_contestant(id):
                 # create new user
                 cursor.execute(
                     "UPDATE concurenti SET username = %s WHERE username = %s",
-                    (new_username, old_username)
+                    (new_username, old_username),
                 )
 
             # username did not change, but password did
@@ -456,7 +457,8 @@ def edit_contestant(id):
 
             # fetch current contests assigned to the user
             cursor.execute(
-                "SELECT id_concurs FROM participanti_concurs WHERE username = %s", (new_username,)
+                "SELECT id_concurs FROM participanti_concurs WHERE username = %s",
+                (new_username,),
             )
             current_contests = set(row[0] for row in cursor.fetchall())
 
@@ -750,7 +752,6 @@ def view_contests():
 
 @app.route("/create_question_set", methods=["GET", "POST"])
 @authenticate
-@authorize("admin")
 def create_question_set():
     username = session["username"]
 
@@ -904,7 +905,6 @@ def create_contest():
             )
             cursor = connection.cursor()
 
-            # Verificăm dacă ID-ul concursului există deja
             cursor.execute(
                 "SELECT id_concurs FROM concurs WHERE id_concurs = %s", (id_concurs,)
             )
@@ -916,7 +916,6 @@ def create_contest():
                 )
                 return redirect(url_for("create_contest"))
 
-            # Obținem întrebările disponibile
             cursor.execute(
                 """
                 SELECT id_intrebare FROM intrebari
@@ -927,19 +926,16 @@ def create_contest():
             )
             available_questions = cursor.fetchall()
 
-            # Verificăm dacă avem suficiente întrebări
-            if len(available_questions) < 6:  # Ajustăm la 6 întrebări pentru quiz
+            if len(available_questions) < 6:
                 flash(
                     "Setul de întrebări nu are suficiente întrebări disponibile (minim 6).",
                     "danger",
                 )
                 return redirect(url_for("create_contest"))
 
-            # Alegem întrebările pentru quiz 1 și quiz 2
             quiz1_questions = available_questions[:3]
             quiz2_questions = available_questions[3:6]
 
-            # Inserăm concursul în baza de date
             cursor.execute(
                 """
                 INSERT INTO concurs (id_concurs, titlu, sucursala, departament, data_ora)
@@ -948,7 +944,6 @@ def create_contest():
                 (id_concurs, title, branch, department, datetime),
             )
 
-            # Inserăm participanții
             for participant in participants:
                 cursor.execute(
                     """
@@ -958,7 +953,6 @@ def create_contest():
                     (id_concurs, participant),
                 )
 
-            # Inserăm chestionarele
             cursor.execute(
                 """
                 INSERT INTO chestionare (id_concurs, numar_chestionar, tip, id_set)
@@ -967,7 +961,6 @@ def create_contest():
                 (id_concurs, 1, "standard", id_set, id_concurs, 2, "rezerva", id_set),
             )
 
-            # Obținem ID-urile chestionarelor create
             cursor.execute(
                 """
                 SELECT id_chestionar, tip FROM chestionare
@@ -979,7 +972,6 @@ def create_contest():
             quiz1_id = next(id for id, tip in quiz_ids if tip == "standard")
             quiz2_id = next(id for id, tip in quiz_ids if tip == "rezerva")
 
-            # Inserăm întrebările în chestionare
             for question_id in quiz1_questions:
                 cursor.execute(
                     """
@@ -998,7 +990,6 @@ def create_contest():
                     (quiz2_id, question_id[0]),
                 )
 
-            # Marcăm întrebările utilizate
             cursor.execute(
                 """
                 UPDATE intrebari
@@ -1008,7 +999,6 @@ def create_contest():
                 (tuple([q[0] for q in quiz1_questions + quiz2_questions]),),
             )
 
-            # Resetăm întrebările dacă toate au fost utilizate
             cursor.execute(
                 """
                 SELECT COUNT(*) FROM intrebari WHERE id_set = %s AND is_used = FALSE
@@ -1027,7 +1017,6 @@ def create_contest():
                     (id_set,),
                 )
 
-            # Asociem concursul cu setul de întrebări
             cursor.execute(
                 """
                 INSERT INTO concursuri_seturi (id_concurs, id_set)
@@ -1408,7 +1397,7 @@ def edit_contest(old_id_concurs):
         except Exception as e:
             conn.rollback()
             flash(
-                f"A intervenit o eroare în timpul actualizării concursului: {str(e)}",
+                f"Concursul nu poate fi modificat deoarece există răspunsuri asociate.",
                 "danger",
             )
         finally:
@@ -1589,7 +1578,7 @@ def view_question_sets():
 
 @app.route("/delete_question_set/<id_set>", methods=["GET"])
 def delete_question_set(id_set):
-    if "username" not in session or session["user_type"] != "admin":
+    if "username" not in session:
         return redirect(url_for("login"))
     try:
         connection = psycopg2.connect(
@@ -1628,8 +1617,6 @@ def delete_question_set(id_set):
 @app.route("/edit_question_set/<id_set>", methods=["GET", "POST"])
 @authenticate
 def edit_question_set(id_set):
-    if "username" not in session or session["user_type"] != "admin":
-        return redirect(url_for("login"))
 
     username = session["username"]
 

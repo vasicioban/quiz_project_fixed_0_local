@@ -379,16 +379,17 @@
                         </div>
                     </td>
                     <td>
-                        <a href="/edit_contestant/{{ contestant.id }}" class="btn-add">Editare</a>
+
                         {% if user_type == 'admin' %}
+                        <a href="/edit_contestant/{{ contestant.id }}" class="btn-add">Editare</a>
                         <a href="#"
                             onclick="return confirm('Sigur dorești să ștergi această înregistrare?') ? window.location.href='/delete_contestant/{{ contestant.id }}' : false;"
                             class="btn-add">Ștergere</a>
                         {% elif user_type == 'contribuitor' %}
-                        <a href="#"
-                            onclick="return confirm('Sigur dorești să ștergi această înregistrare?') ? window.location.href='/delete_contestant/{{ contestant.id }}' : false;"
-                            class="btn-add">Ștergere</a>
+                        <a class="btn-add disabled">Editare</a>
+                        <a class="btn-add disabled">Șterge</a>
                         {% elif user_type == 'hr' %}
+                        <a href="/edit_contestant/{{ contestant.id }}" class="btn-add">Editare</a>
                         <a class="btn-add disabled">Șterge</a>
                         {% endif %}
 
