@@ -30,6 +30,7 @@ app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 @app.after_request
 def apply_csp(response):
     response.headers["Content-Security-Policy"] = (
+
         "connect-src 'self' http://localhost:5055"
     )
     # Re-request page when pressing back in the browser
@@ -2443,12 +2444,12 @@ def solve_quiz(id_chestionar):
 
     username = session["username"]
     if request.method == "POST":
-        answers = request.form
+        form = request.form
         id_concurs = request.form.get("id_concurs")
         end_time = request.form.get("end_time")
         print("received end_time", str(end_time))
 
-        print(answers)
+        print(form)
 
         try:
             connection = psycopg2.connect(
@@ -2459,64 +2460,50 @@ def solve_quiz(id_chestionar):
                 database="postgres",
             )
             cursor = connection.cursor()
+            questions_answers = dict()
 
-            total_score = 10
+            for key in form.items():
+                if key[0].startswith("question_"):
+                    question = int(key[0].split("_")[1].strip("[]"))
+                    # raw answers
+                    answers_raw = form.getlist(key[0])
+                    # final clean answers
+                    answers = [int(answer) for answer in answers_raw]
+                    # add question and its answers to dict
+                    questions_answers[question] = answers
 
-            for question_key, answer_ids in answers.items():
-                if question_key.startswith("question_"):
-                    question_id = int(question_key.split("_")[1].strip("[]"))
+            print(questions_answers)
 
-                    if isinstance(answer_ids, str):
-                        answer_ids = [answer_ids]
+            total_score = 0
+            for question in questions_answers.keys():
+                cursor.execute(
+                    "SELECT id_raspuns, punctaj FROM raspunsuri WHERE id_intrebare = %s",
+                    (question,)
+                )
+                answers_predefined = cursor.fetchall()
+                answers_ids = {answer[0] for answer in answers_predefined}
+                answers_points = {answer[0]: answer[1] for answer in answers_predefined}
+                answers_wrong = [answer[0] for answer in answers_predefined if answer[1] == 0]
 
-                    valid_answer_ids = []
-                    for raw_answer_id in answer_ids:
-                        try:
-                            clean_answer_id = raw_answer_id.strip("[]").strip()
-                            answer_id_int = int(clean_answer_id)
-                            valid_answer_ids.append(answer_id_int)
-                        except ValueError:
-                            print(f"Invalid answer ID: {raw_answer_id}")
-                            continue
+                question_score = 0
+                correct = True
 
-                    if not valid_answer_ids:
-                        continue
+                # for any incorrect answer selected (along with other correct ones), the score is 0
+                if any(answer in answers_wrong for answer in questions_answers[question]):
+                    correct = False
+
+                for answer in questions_answers[question]:
+                    question_score += answers_points[answer] if correct else 0
 
                     cursor.execute(
                         """
-                        SELECT id_raspuns, punctaj FROM raspunsuri WHERE id_intrebare = %s
+                        INSERT INTO participanti_raspuns (username, id_concurs, id_intrebare, id_raspuns, punctaj)
+                        VALUES (%s, %s::VARCHAR, %s, %s, %s)
                     """,
-                        (question_id,),
+                        (username, id_concurs, question, answer, answers_points[answer] if correct else 0),
                     )
-                    correct_answers = cursor.fetchall()
-                    correct_answer_ids = {answer[0] for answer in correct_answers}
-                    correct_answer_points = {
-                        answer[0]: answer[1] for answer in correct_answers
-                    }
 
-                    if all(
-                        answer_id in correct_answer_ids
-                        for answer_id in valid_answer_ids
-                    ):
-
-                        score = sum(
-                            correct_answer_points[answer_id]
-                            for answer_id in valid_answer_ids
-                        )
-                    else:
-
-                        score = 0
-
-                    total_score += score
-
-                    for answer_id in valid_answer_ids:
-                        cursor.execute(
-                            """
-                            INSERT INTO participanti_raspuns (username, id_concurs, id_intrebare, id_raspuns, punctaj)
-                            VALUES (%s, %s::VARCHAR, %s, %s, %s)
-                        """,
-                            (username, id_concurs, question_id, answer_id, score),
-                        )
+                total_score += question_score
 
             cursor.execute(
                 """
@@ -2970,13 +2957,11 @@ def test_report(id_concurs, id_set, username, total_score):
                 is_correct = user_answer_id is not None and score > 0
                 selected = user_answer_id == answer_id
 
-                if selected and not is_correct:
-                    questions[question_id]["user_answered_correctly"] = False
-
                 if selected:
-                    questions[question_id][
-                        "total_score"
-                    ] += score  # Add the score for the selected answer
+                    if not is_correct:
+                        questions[question_id]["user_answered_correctly"] = False
+                    else:
+                        questions[question_id]["total_score"] += score  # Add the score for the selected answer
 
                 questions[question_id]["answers"].append(
                     {
@@ -2987,6 +2972,10 @@ def test_report(id_concurs, id_set, username, total_score):
                         "selected": selected,
                     }
                 )
+
+            for question in questions.keys():
+                if any(answer["selected"] and not answer["is_correct"] for answer in questions[question]["answers"]):
+                    questions[question]["total_score"] = 0
 
             return render_template(
                 "test_report.html",
