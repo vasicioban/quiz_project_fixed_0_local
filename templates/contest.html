@@ -216,11 +216,15 @@
         {% endif %}
     </div>
     <script>
-        function check_start_time() {
-            const contest_start_time = Date.parse("{{ contest_start_time }}");
-            const server_current_time = Date.parse("{{ current_time }}");
+        const contest_start_time = Date.parse("{{ contest_start_time }}");
+        const server_current_time = Date.parse("{{ current_time }}");
 
-            if (server_current_time >= contest_start_time) {
+        function check_start_time() {
+            if (server_current_time - contest_start_time > 120 * 60 * 1000) {
+                let container = document.querySelector(".contest-container");
+                container.innerHTML += `<p id="timer-info">Perioada concursului s-a încheiat</p>`;
+                return;
+            } else if (Math.ceil(server_current_time - contest_start_time) >= 0) {
                 enable_buttons();
                 return;
             }
