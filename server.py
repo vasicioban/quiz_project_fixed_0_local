@@ -406,7 +406,7 @@ def edit_contestant(id):
             new_username = request.form.get("username")
             password = request.form.get("password")
             user_type = "contestant"
-            selected_contests = request.form.getlist("contests")
+            selected_contests = set(map(int, request.form.getlist("contests")))
 
             if not new_username:
                 flash("Username-ul este obligatoriu!", "danger")
@@ -439,7 +439,6 @@ def edit_contestant(id):
 
             # update username
             if new_username != old_username:
-                # create new user
                 cursor.execute(
                     "UPDATE concurenti SET username = %s WHERE username = %s",
                     (new_username, old_username),
@@ -461,20 +460,23 @@ def edit_contestant(id):
                 "SELECT id_concurs FROM participanti_concurs WHERE username = %s",
                 (new_username,),
             )
-            current_contests = set(row[0] for row in cursor.fetchall())
+            current_contests = set(int(row[0]) for row in cursor.fetchall())
 
-            # Convert selected_contests to a set of integers
-            selected_contests_set = set(map(int, selected_contests))
+            cursor.execute(
+                "SELECT DISTINCT id_concurs FROM participanti_scoruri WHERE username = %s",
+                (new_username,)
+            )
+            completed_contests = set(int(row[0]) for row in cursor.fetchall())
 
             # Determine contests to add and remove
-            contests_to_remove = current_contests - selected_contests_set
-            contests_to_add = selected_contests_set - current_contests
+            contests_to_remove = current_contests - selected_contests - completed_contests
+            contests_to_add = selected_contests - current_contests - completed_contests
 
             # Remove contests that are no longer selected
             if contests_to_remove:
                 cursor.execute(
                     "DELETE FROM participanti_concurs WHERE username = %s AND id_concurs IN %s",
-                    (new_username, tuple(contests_to_remove)),
+                    (new_username, (contests_to_remove,)),
                 )
 
             # Add new contests
@@ -518,15 +520,22 @@ def edit_contestant(id):
 
             cursor.execute(
                 "SELECT id_concurs FROM participanti_concurs WHERE username = %s",
-                (contestant[1],),
+                (contestant[1],)
             )
             assigned_contests = [row[0] for row in cursor.fetchall()]
+
+            cursor.execute(
+                "SELECT DISTINCT id_concurs FROM participanti_scoruri WHERE username = %s",
+                (contestant[1],)
+            )
+            completed_contests = [row[0] for row in cursor.fetchall()]
 
             return render_template(
                 "edit_contestant.html",
                 contestant=contestant,
                 contests=contests,
                 assigned_contests=assigned_contests,
+                completed_contests=completed_contests,
                 username=username,
             )
 

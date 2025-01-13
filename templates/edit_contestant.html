@@ -216,8 +216,9 @@
                 <ul>
                     {% for contest in contests %}
                     <li>
-                        <input type="checkbox" name="contests" value="{{ contest[0] }}" {% if contest[0] in
-                            assigned_contests %} checked {% endif %}>
+                        <input type="checkbox" name="contests" value="{{ contest[0] }}"
+                        {% if contest[0] in assigned_contests %} checked {% endif %}
+                        {% if contest[0] in completed_contests %} disabled title="Acest concurs a fost completat" {% endif %}>
                         {{ contest[1] }}
                     </li>
                     {% endfor %}
