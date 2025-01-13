@@ -126,7 +126,7 @@
                 <h3>{{ loop.index }}. {{ question.question_text }} - Punctaj: {{ question.total_score }}</h3>
                 <div class="answers">
                     {% for answer in question.answers %}
-                    <div class="answer {% if answer.selected %}font-weight-bold{% endif %}">
+                    <div class="answer {% if answer.selected and answer.is_correct %}correct-answer{% elif answer.selected and not answer.is_correct %}incorrect-answer{% else %}unselected-answer{% endif %}">
                         {{ answer.answer_text }} - Punctaj: {{ answer.score }}p
                     </div>
                     {% endfor %}
@@ -217,8 +217,19 @@
                         }
 
                         pdf.setFontSize(10);
+
+                        // set color based on correctness
+                        if (answerElement.classList.contains("correct-answer")) {
+                            pdf.setTextColor('#16ac16');
+                        } else if (answerElement.classList.contains("incorrect-answer")) {
+                            pdf.setTextColor('#FF0000');
+                        }
+
                         const answerLines = pdf.splitTextToSize(answerText, pdfWidth - 2 * margin);
                         pdf.text(answerLines, margin + 20, y);
+
+                        // reset color
+                        pdf.setTextColor('#000000');
                         y += 25;
                     });
 
