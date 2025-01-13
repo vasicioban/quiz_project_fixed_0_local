@@ -1235,36 +1235,13 @@ def edit_contest(old_id_concurs):
             current_set = current_set_row[0] if current_set_row else None
 
             if old_id_concurs != new_id_concurs:
-                # Insert the new contest
                 cursor.execute(
-                    """
-                    INSERT INTO concurs (id_concurs, titlu, sucursala, departament, data_ora)
-                    VALUES (%s, %s, %s, %s, %s)
+                """
+                    UPDATE concurs
+                    SET id_concurs = %s, titlu = %s, sucursala = %s, departament = %s, data_ora = %s
+                    WHERE id_concurs = %s
                 """,
-                    (new_id_concurs, title, branch, department, datetime),
-                )
-
-                # Update foreign key references in all related tables
-                cursor.execute(
-                    "UPDATE concursuri_seturi SET id_concurs = %s WHERE id_concurs = %s",
-                    (new_id_concurs, old_id_concurs),
-                )
-                cursor.execute(
-                    "UPDATE chestionare SET id_concurs = %s WHERE id_concurs = %s",
-                    (new_id_concurs, old_id_concurs),
-                )
-                cursor.execute(
-                    "UPDATE participanti_concurs SET id_concurs = %s WHERE id_concurs = %s",
-                    (new_id_concurs, old_id_concurs),
-                )
-                cursor.execute(
-                    "UPDATE participanti_raspuns SET id_concurs = %s WHERE id_concurs = %s",
-                    (new_id_concurs, old_id_concurs),
-                )
-
-                # Delete the old contest after updating references
-                cursor.execute(
-                    "DELETE FROM concurs WHERE id_concurs = %s", (old_id_concurs,)
+                    (new_id_concurs, title, branch, department, datetime, old_id_concurs),
                 )
             else:
                 # If the ID doesn't change, just update the other details
@@ -1392,22 +1369,22 @@ def edit_contest(old_id_concurs):
                     )
 
             # Handle participants
-            cursor.execute(
-                "DELETE FROM participanti_concurs WHERE id_concurs = %s",
-                (new_id_concurs,),
-            )
-            for participant in participants:
-                cursor.execute(
-                    "INSERT INTO participanti_concurs (id_concurs, username) VALUES (%s, %s)",
-                    (new_id_concurs, participant),
-                )
+            # cursor.execute(
+            #     "DELETE FROM participanti_concurs WHERE id_concurs = %s",
+            #     (new_id_concurs,),
+            # )
+            # for participant in participants:
+            #     cursor.execute(
+            #         "INSERT INTO participanti_concurs (id_concurs, username) VALUES (%s, %s)",
+            #         (new_id_concurs, participant),
+            #     )
 
             conn.commit()
             flash("Concursul a fost actualizat cu succes!", "success")
         except Exception as e:
             conn.rollback()
             flash(
-                f"Concursul nu poate fi modificat deoarece există răspunsuri asociate.",
+                f"Concursul nu poate fi modificat: {e}",
                 "danger",
             )
         finally:
@@ -1445,6 +1422,11 @@ def edit_contest(old_id_concurs):
             selected_participants = [row[0] for row in cursor.fetchall()]
 
             cursor.execute(
+                "SELECT DISTINCT username FROM participanti_scoruri WHERE id_concurs = %s",
+                (old_id_concurs,))
+            completed_participants = [row[0] for row in cursor.fetchall()]
+
+            cursor.execute(
                 "SELECT id_set FROM concursuri_seturi WHERE id_concurs = %s",
                 (old_id_concurs,),
             )
@@ -1461,6 +1443,7 @@ def edit_contest(old_id_concurs):
                 branches_departments=branches_departments,
                 available_participants=available_participants,
                 selected_participants=selected_participants,
+                completed_participants=completed_participants,
                 question_sets=question_sets,
                 selected_set=selected_set,
                 username=username,
