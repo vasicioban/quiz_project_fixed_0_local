@@ -476,7 +476,7 @@ def edit_contestant(id):
             if contests_to_remove:
                 cursor.execute(
                     "DELETE FROM participanti_concurs WHERE username = %s AND id_concurs IN %s",
-                    (new_username, (contests_to_remove,)),
+                    (new_username, tuple({str(e) for e in contests_to_remove})),
                 )
 
             # Add new contests
