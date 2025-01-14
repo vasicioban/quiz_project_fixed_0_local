@@ -154,6 +154,10 @@
             const margin = 40;
             let y = margin;
 
+            const fontSize = 10;
+            const questionSpacing = fontSize;
+            const answerSpacing = fontSize;
+
             const totalScore = document.getElementById('total-score').textContent;
             const user = document.getElementById('user').textContent;
             const idConcurs = document.getElementById('id-concurs').textContent;
@@ -195,28 +199,32 @@
 
                 const questions = document.querySelectorAll('.question');
                 questions.forEach((questionElement, index) => {
-                    const questionText = questionElement.querySelector('h3').textContent;
+                    const questionText = questionElement.querySelector('h3').textContent.trim().replace("\t", " ");
                     const answers = questionElement.querySelectorAll('.answer');
 
-                    if (y + 30 > pdfHeight - margin) {
+                    if (y + 2 * questionSpacing > pdfHeight - margin) {
                         pdf.addPage();
                         y = margin;
                     }
 
-                    pdf.setFontSize(10);
+                    // reset color
+                    pdf.setTextColor('#000000');
+                    pdf.setFontSize(fontSize);
                     const questionLines = pdf.splitTextToSize(questionText, pdfWidth - 2 * margin);
                     pdf.text(questionLines, margin, y);
-                    y += 15;
+                    y += questionSpacing * (questionLines.length + 1);
 
                     answers.forEach(answerElement => {
-                        const answerText = answerElement.textContent;
+                        const answerText = answerElement.textContent.trim().replace("\t", " ");
 
-                        if (y + 20 > pdfHeight - margin) {
+                        if (y + 2 * answerSpacing > pdfHeight - margin) {
                             pdf.addPage();
                             y = margin;
                         }
 
-                        pdf.setFontSize(10);
+                        // reset color
+                        pdf.setTextColor('#000000');
+                        pdf.setFontSize(fontSize);
 
                         // set color based on correctness
                         if (answerElement.classList.contains("correct-answer")) {
@@ -228,12 +236,10 @@
                         const answerLines = pdf.splitTextToSize(answerText, pdfWidth - 2 * margin);
                         pdf.text(answerLines, margin + 20, y);
 
-                        // reset color
-                        pdf.setTextColor('#000000');
-                        y += 25;
+                        y += answerSpacing * (answerLines.length + 1);
                     });
 
-                    y += 20;
+                    y += questionSpacing;
                 });
 
                 pdf.save(`raport_concurs_${idConcurs}_${user}.pdf`);

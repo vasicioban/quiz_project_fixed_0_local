@@ -2494,7 +2494,7 @@ def solve_quiz(id_chestionar):
 
             print(questions_answers)
 
-            total_score = 0
+            total_score = 10
             for question in questions_answers.keys():
                 cursor.execute(
                     "SELECT id_raspuns, punctaj FROM raspunsuri WHERE id_intrebare = %s",
