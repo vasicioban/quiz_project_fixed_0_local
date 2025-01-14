@@ -216,16 +216,19 @@
             <div class="form-group">
                 <label for="id_concurs">ID Concurs:</label>
                 <input type="text" id="id_concurs" name="id_concurs" value="{{ contest[0] }}" placeholder="ID unic"
-                    required>
+                    required
+                    {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
             </div>
             <div class="form-group">
                 <label for="title">Titlu:</label>
                 <input type="text" id="title" name="title" value="{{ contest[1] }}" placeholder="Denumire Concurs"
-                    required>
+                    required
+                    {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
             </div>
             <div class="form-group">
                 <label for="branch">Sucursala:</label>
-                <select id="branch" name="branch" required>
+                <select id="branch" name="branch" required
+                    {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
                     <option value="" disabled>Selectați sucursala</option>
                     {% for branch in branches %}
                     <option value="{{ branch }}" {% if branch==contest[2] %}selected{% endif %}>{{ branch }}</option>
@@ -234,13 +237,15 @@
             </div>
             <div class="form-group">
                 <label for="department">Departament:</label>
-                <select id="department" name="department" required>
+                <select id="department" name="department" required
+                    {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
                     <option value="" disabled>Selectați departamentul</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="datetime">Data și ora:</label>
-                <input type="datetime-local" id="datetime" name="datetime" value="{{ contest[4] }}" required>
+                <input type="datetime-local" id="datetime" name="datetime" value="{{ contest[4] }}" required
+                    {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
             </div>
             <div class="form-group">
                 <label for="participants">Concurenți:</label>
@@ -260,7 +265,8 @@
             </div>
             <div class="form-group">
                 <label for="id_set">Set de întrebări:</label>
-                <select id="id_set" name="id_set" required>
+                <select id="id_set" name="id_set" required
+                    {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
                     <option value="none" {% if selected_set=='none' %}selected{% endif %}>|none|</option>
                     {% for set in question_sets %}
                     <option value="{{ set[0] }}" {% if set[0]==selected_set %}selected{% endif %}>{{ set[1] }}</option>

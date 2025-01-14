@@ -1203,9 +1203,9 @@ def edit_contest(old_id_concurs):
         participants = request.form.getlist("participants")
         id_set = request.form.get("id_set")
 
-        if not all([new_id_concurs, title, datetime, id_set]):
-            flash("Toate câmpurile sunt obligatorii!", "danger")
-            return redirect(url_for("edit_contest", old_id_concurs=old_id_concurs))
+        # if not all([new_id_concurs, title, datetime, id_set]):
+        #     flash("Toate câmpurile sunt obligatorii!", "danger")
+        #     return redirect(url_for("edit_contest", old_id_concurs=old_id_concurs))
 
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -1214,17 +1214,26 @@ def edit_contest(old_id_concurs):
             cursor.execute("BEGIN")
 
             # Check if the new `id_concurs` already exists and is not the same as the old one
-            cursor.execute(
-                "SELECT id_concurs FROM concurs WHERE id_concurs = %s",
-                (new_id_concurs,),
-            )
-            if cursor.fetchone() and old_id_concurs != new_id_concurs:
-                flash(
-                    f"ID-ul concursului {new_id_concurs} este deja utilizat. Te rugăm să alegi alt ID.",
-                    "danger",
+            if new_id_concurs:
+                cursor.execute(
+                    "SELECT id_concurs FROM concurs WHERE id_concurs = %s",
+                    (new_id_concurs,),
                 )
-                conn.rollback()
-                return redirect(url_for("edit_contest", old_id_concurs=old_id_concurs))
+                if cursor.fetchone() and old_id_concurs != new_id_concurs:
+                    flash(
+                        f"ID-ul concursului {new_id_concurs} este deja utilizat. Te rugăm să alegi alt ID.",
+                        "danger",
+                    )
+                    conn.rollback()
+                    return redirect(url_for("edit_contest", old_id_concurs=old_id_concurs))
+                elif new_id_concurs != old_id_concurs:
+                    cursor.execute(
+                        "UPDATE concurs SET id_concurs = %s WHERE id_concurs = %s",
+                        (new_id_concurs, old_id_concurs)
+                    )
+
+                    # id was changed, so we do this to simplify control flow
+                    old_id_concurs = new_id_concurs
 
             # Retrieve the current set ID associated with the old contest
             cursor.execute(
@@ -1234,49 +1243,50 @@ def edit_contest(old_id_concurs):
             current_set_row = cursor.fetchone()
             current_set = current_set_row[0] if current_set_row else None
 
-            if old_id_concurs != new_id_concurs:
+            if title:
                 cursor.execute(
-                """
-                    UPDATE concurs
-                    SET id_concurs = %s, titlu = %s, sucursala = %s, departament = %s, data_ora = %s
-                    WHERE id_concurs = %s
-                """,
-                    (new_id_concurs, title, branch, department, datetime, old_id_concurs),
+                    "UPDATE concurs SET titlu = %s WHERE id_concurs = %s",
+                    (title, old_id_concurs)
                 )
-            else:
-                # If the ID doesn't change, just update the other details
+            if department:
                 cursor.execute(
-                    """
-                    UPDATE concurs
-                    SET titlu = %s, sucursala = %s, departament = %s, data_ora = %s
-                    WHERE id_concurs = %s
-                """,
-                    (title, branch, department, datetime, old_id_concurs),
+                    "UPDATE concurs SET departament = %s WHERE id_concurs = %s",
+                    (department, old_id_concurs)
+                )
+            if branch:
+                cursor.execute(
+                    "UPDATE concurs SET sucursala = %s WHERE id_concurs = %s",
+                    (branch, old_id_concurs)
+                )
+            if datetime:
+                cursor.execute(
+                    "UPDATE concurs SET data_ora = %s WHERE id_concurs = %s",
+                    (datetime, old_id_concurs)
                 )
 
             # Handle the record in `concursuri_seturi`
-            cursor.execute(
-                "DELETE FROM concursuri_seturi WHERE id_concurs = %s", (new_id_concurs,)
-            )
+            if id_set != "none" and id_set is not None:
+                cursor.execute(
+                    "DELETE FROM concursuri_seturi WHERE id_concurs = %s", (old_id_concurs,)
+                )
 
-            if id_set != "none":
                 cursor.execute(
                     """
                     INSERT INTO concursuri_seturi (id_concurs, id_set)
                     VALUES (%s, %s)
                 """,
-                    (new_id_concurs, id_set),
+                    (old_id_concurs, id_set),
                 )
 
                 # Update quizzes only if the set has changed
                 if str(current_set) != str(id_set):  # Comparăm ca stringuri
                     cursor.execute(
                         "DELETE FROM chestionar_intrebari WHERE id_chestionar IN (SELECT id_chestionar FROM chestionare WHERE id_concurs = %s)",
-                        (new_id_concurs,),
+                        (old_id_concurs,),
                     )
                     cursor.execute(
                         "DELETE FROM chestionare WHERE id_concurs = %s",
-                        (new_id_concurs,),
+                        (old_id_concurs,),
                     )
 
                     # Reset is_used for the old set questions if it was used
@@ -1318,11 +1328,11 @@ def edit_contest(old_id_concurs):
                         VALUES (%s, %s, %s, %s), (%s, %s, %s, %s)
                     """,
                         (
-                            new_id_concurs,
+                            old_id_concurs,
                             1,
                             "standard",
                             id_set,
-                            new_id_concurs,
+                            old_id_concurs,
                             2,
                             "rezerva",
                             id_set,
@@ -1334,7 +1344,7 @@ def edit_contest(old_id_concurs):
                         SELECT id_chestionar, tip FROM chestionare
                         WHERE id_concurs = %s
                     """,
-                        (new_id_concurs,),
+                        (old_id_concurs,),
                     )
                     quiz_ids = cursor.fetchall()
                     quiz1_id = next(id for id, tip in quiz_ids if tip == "standard")
@@ -1368,16 +1378,33 @@ def edit_contest(old_id_concurs):
                         (id_set, tuple(q[0] for q in questions)),
                     )
 
+            cursor.execute(
+                "SELECT username FROM participanti_concurs WHERE id_concurs = %s",
+                (old_id_concurs,),
+            )
+            current_participants = {row[0] for row in cursor.fetchall()}
+
+            cursor.execute(
+                "SELECT DISTINCT username FROM participanti_scoruri WHERE id_concurs = %s",
+                (old_id_concurs,))
+            completed_participants = {row[0] for row in cursor.fetchall()}
+
+            participants_to_remove = current_participants - set(participants) - completed_participants
+            participants_to_add = set(participants) - current_participants
+
             # Handle participants
-            # cursor.execute(
-            #     "DELETE FROM participanti_concurs WHERE id_concurs = %s",
-            #     (new_id_concurs,),
-            # )
-            # for participant in participants:
-            #     cursor.execute(
-            #         "INSERT INTO participanti_concurs (id_concurs, username) VALUES (%s, %s)",
-            #         (new_id_concurs, participant),
-            #     )
+            if participants_to_remove:
+                for participant in participants_to_remove:
+                    cursor.execute(
+                        "DELETE FROM participanti_concurs WHERE username = %s AND id_concurs = %s",
+                        (participant, old_id_concurs,),
+                    )
+            if participants_to_add:
+                for participant in participants_to_add:
+                    cursor.execute(
+                        "INSERT INTO participanti_concurs (id_concurs, username) VALUES (%s, %s)",
+                        (old_id_concurs, participant),
+                    )
 
             conn.commit()
             flash("Concursul a fost actualizat cu succes!", "success")
@@ -1447,6 +1474,7 @@ def edit_contest(old_id_concurs):
                 question_sets=question_sets,
                 selected_set=selected_set,
                 username=username,
+                completed=len(completed_participants) > 0,
             )
 
         except Exception as e:
