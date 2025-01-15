@@ -309,16 +309,26 @@
         }
     }
 
+    function sanitize(str) {
+        return str.trim().replace(/\s+/g, " ");
+    }
+
     function validateForm() {
         const idSetInput = document.getElementById('id_set');
         const numeSetInput = document.getElementById('nume_set');
+        const used_ids = JSON.parse('{{ existing_ids|tojson|safe }}');
 
-        if (!idSetInput.value.trim()) {
+        idSetInput.value = sanitize(idSetInput.value);
+        if (!idSetInput.value) {
             alert("Te rugăm să introduci un ID pentru setul de întrebări.");
+            return false;
+        } else if (parseInt(idSetInput.value) in used_ids) {
+            alert("Acest ID este deja utilizat. Te rugăm să alegi altul.");
             return false;
         }
 
-        if (!numeSetInput.value.trim()) {
+        numeSetInput.value = sanitize(numeSetInput.value);
+        if (!numeSetInput.value) {
             alert("Te rugăm să introduci un nume pentru setul de întrebări.");
             return false;
         }
@@ -328,7 +338,8 @@
 
         for (const question of questions) {
             const questionInput = question.querySelector('input[type="text"]');
-            if (!questionInput.value.trim()) {
+            questionInput.value = sanitize(questionInput.value);
+            if (!questionInput.value) {
                 alert("Toate întrebările trebuie să aibă un text.");
                 return false;
             }
@@ -338,11 +349,13 @@
             for (const answer of answers) {
                 const answerInput = answer.querySelector('input[type="text"]');
                 const scoreInput = answer.querySelector('input[type="number"]');
-                if (!answerInput.value.trim()) {
+                answerInput.value = sanitize(answerInput.value);
+                scoreInput.value = sanitize(scoreInput.value);
+                if (!answerInput.value) {
                     alert("Toate răspunsurile trebuie să aibă un text.");
                     return false;
                 }
-                if (!scoreInput.value.trim()) {
+                if (!scoreInput.value) {
                     alert("Toate răspunsurile trebuie să aibă un punctaj.");
                     return false;
                 }

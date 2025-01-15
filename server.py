@@ -19,6 +19,7 @@ import bcrypt
 import json
 import random
 import requests
+import re
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
@@ -805,7 +806,7 @@ def create_question_set():
             )
 
             for i in range(18):  # Iterate through 18 questions
-                question_text = request.form.get(f"questions[{i}][question]")
+                question_text = re.sub("\s+", " ", request.form.get(f"questions[{i}][question]"))
                 answer_count = int(request.form.get(f"questions[{i}][answer_count]"))
 
                 if not question_text:
@@ -824,7 +825,7 @@ def create_question_set():
 
                 # Insert answers
                 for j in range(answer_count):
-                    raspuns = request.form.get(f"questions[{i}][answers][{j}][answer]")
+                    raspuns = re.sub("\s+", " ", request.form.get(f"questions[{i}][answers][{j}][answer]"))
                     punctaj = int(
                         request.form.get(f"questions[{i}][answers][{j}][score]")
                     )
@@ -854,6 +855,13 @@ def create_question_set():
                 cursor.close()
             if connection:
                 connection.close()
+    else:
+        connection = connect_db()
+        cursor = connection.cursor();
+
+        # Fetch existing ids
+        cursor.execute("SELECT id_set FROM seturi_intrebari")
+        existing_ids = [e for (e,) in cursor.fetchall()]
 
     contests = get_contests()
 
@@ -862,6 +870,7 @@ def create_question_set():
         question_set={},
         contests=contests,
         username=username,
+        existing_ids=existing_ids
     )
 
 
@@ -1643,7 +1652,7 @@ def edit_question_set(id_set):
 
     if request.method == "POST":
         new_id_set = request.form.get("id_set")
-        nume_set = request.form.get("nume_set")
+        nume_set = re.sub("\s+", " ", request.form.get("nume_set"))
 
         if not new_id_set or not nume_set:
             flash(f"Toate câmpurile sunt obligatorii.", "danger")
@@ -1712,7 +1721,7 @@ def edit_question_set(id_set):
 
             # Iterate through questions and update or insert them
             for i in range(18):
-                question_text = request.form.get(f"questions[{i}][question]")
+                question_text = re.sub("\s+", " ", request.form.get(f"questions[{i}][question]"))
                 question_id = request.form.get(f"questions[{i}][id_intrebare]")
                 answer_count = int(request.form.get(f"questions[{i}][answer_count]"))
 
@@ -1742,9 +1751,7 @@ def edit_question_set(id_set):
                         "DELETE FROM raspunsuri WHERE id_intrebare = %s", (question_id,)
                     )
                     for j in range(answer_count):
-                        raspuns = request.form.get(
-                            f"questions[{i}][answers][{j}][answer]"
-                        )
+                        raspuns = re.sub("\s+", " ", request.form.get(f"questions[{i}][answers][{j}][answer]"))
                         punctaj = int(
                             request.form.get(f"questions[{i}][answers][{j}][score]")
                         )
@@ -1794,6 +1801,10 @@ def edit_question_set(id_set):
                 (id_set,),
             )
             question_set = cursor.fetchone()
+
+            # Fetch existing ids
+            cursor.execute("SELECT id_set FROM seturi_intrebari")
+            existing_ids = [e for (e,) in cursor.fetchall()]
 
             if not question_set:
                 flash(f"Setul de întrebări nu a fost găsit.", "danger")
@@ -1846,7 +1857,7 @@ def edit_question_set(id_set):
         question_set=question_set,
         question_details=question_details,
         username=username,
-        enumerate=enumerate,
+        existing_ids=existing_ids,
     )
 
 
