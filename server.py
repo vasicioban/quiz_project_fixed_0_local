@@ -14,11 +14,8 @@ from flask_cors import CORS
 import psycopg2
 from psycopg2 import Error
 from functools import wraps
-from werkzeug.security import generate_password_hash, check_password_hash
 import bcrypt
-import json
 import random
-import requests
 import re
 from datetime import datetime, timedelta
 
@@ -31,7 +28,6 @@ app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 @app.after_request
 def apply_csp(response):
     response.headers["Content-Security-Policy"] = (
-
         "connect-src 'self' http://localhost:5055"
     )
     # Re-request page when pressing back in the browser
@@ -248,7 +244,7 @@ def register():
                 (username, hashed_password.decode("utf-8"), user_type),
             )
             connection.commit()
-            flash(f"Utilizator înregistrat cu succes!", "success")
+            flash("Utilizator înregistrat cu succes!", "success")
             return redirect(url_for("view_users"))
         except (Exception, Error) as error:
             print("Eroare la înregistrare:", error)
@@ -283,7 +279,7 @@ def register_contestant():
                 (username, hashed_password.decode("utf-8"), user_type),
             )
             connection.commit()
-            flash(f"Concurent înregistrat cu succes!", "success")
+            flash("Concurent înregistrat cu succes!", "success")
             return redirect(url_for("view_contestants"))
         except (Exception, Error) as error:
             print("Eroare la înregistrare:", error)
@@ -406,7 +402,6 @@ def edit_contestant(id):
             old_username = request.form.get("old_username")
             new_username = request.form.get("username")
             password = request.form.get("password")
-            user_type = "contestant"
             selected_contests = set(map(int, request.form.getlist("contests")))
 
             if not new_username:
@@ -465,12 +460,14 @@ def edit_contestant(id):
 
             cursor.execute(
                 "SELECT DISTINCT id_concurs FROM participanti_scoruri WHERE username = %s",
-                (new_username,)
+                (new_username,),
             )
             completed_contests = set(int(row[0]) for row in cursor.fetchall())
 
             # Determine contests to add and remove
-            contests_to_remove = current_contests - selected_contests - completed_contests
+            contests_to_remove = (
+                current_contests - selected_contests - completed_contests
+            )
             contests_to_add = selected_contests - current_contests - completed_contests
 
             # Remove contests that are no longer selected
@@ -521,13 +518,13 @@ def edit_contestant(id):
 
             cursor.execute(
                 "SELECT id_concurs FROM participanti_concurs WHERE username = %s",
-                (contestant[1],)
+                (contestant[1],),
             )
             assigned_contests = [row[0] for row in cursor.fetchall()]
 
             cursor.execute(
                 "SELECT DISTINCT id_concurs FROM participanti_scoruri WHERE username = %s",
-                (contestant[1],)
+                (contestant[1],),
             )
             completed_contests = [row[0] for row in cursor.fetchall()]
 
@@ -581,9 +578,9 @@ def delete_contestant(id):
             cursor.execute("DELETE FROM concurenti WHERE id = %s", (id,))
 
             connection.commit()
-            flash(f"Concurentul a fost șters cu succes!", "success")
+            flash("Concurentul a fost șters cu succes!", "success")
         else:
-            flash(f"Concurentul nu a fost găsit.", "danger")
+            flash("Concurentul nu a fost găsit.", "danger")
 
     except (Exception, psycopg2.Error) as error:
         print("Eroare la ștergere:", error)
@@ -631,7 +628,7 @@ def menu():
             assigned_contests = cursor.fetchall()
 
             if not assigned_contests:
-                flash(f"Nu sunteți asignat la niciun concurs.", "danger")
+                flash("Nu sunteți asignat la niciun concurs.", "danger")
 
     except (Exception, psycopg2.Error) as error:
         print("Eroare la preluarea concursurilor atribuite:", error)
@@ -771,7 +768,7 @@ def create_question_set():
         nume_set = request.form.get("nume_set")
 
         if not id_set or not nume_set:
-            flash(f"Toate câmpurile sunt obligatorii.", "danger")
+            flash("Toate câmpurile sunt obligatorii.", "danger")
             return redirect(url_for("create_question_set"))
 
         try:
@@ -791,7 +788,7 @@ def create_question_set():
             existing_id = cursor.fetchone()
             if existing_id:
                 flash(
-                    f"ID-ul setului de întrebări există deja! Te rugăm să alegi altul.",
+                    "ID-ul setului de întrebări există deja! Te rugăm să alegi altul.",
                     "danger",
                 )
                 return redirect(url_for("create_question_set"))
@@ -806,7 +803,9 @@ def create_question_set():
             )
 
             for i in range(18):  # Iterate through 18 questions
-                question_text = re.sub("\s+", " ", request.form.get(f"questions[{i}][question]"))
+                question_text = re.sub(
+                    "\s+", " ", request.form.get(f"questions[{i}][question]")
+                )
                 answer_count = int(request.form.get(f"questions[{i}][answer_count]"))
 
                 if not question_text:
@@ -825,7 +824,11 @@ def create_question_set():
 
                 # Insert answers
                 for j in range(answer_count):
-                    raspuns = re.sub("\s+", " ", request.form.get(f"questions[{i}][answers][{j}][answer]"))
+                    raspuns = re.sub(
+                        "\s+",
+                        " ",
+                        request.form.get(f"questions[{i}][answers][{j}][answer]"),
+                    )
                     punctaj = int(
                         request.form.get(f"questions[{i}][answers][{j}][score]")
                     )
@@ -857,8 +860,7 @@ def create_question_set():
                 connection.close()
     else:
         connection = connect_db()
-        cursor = connection.cursor();
-
+        cursor = connection.cursor()
         # Fetch existing ids
         cursor.execute("SELECT id_set FROM seturi_intrebari")
         existing_ids = [e for (e,) in cursor.fetchall()]
@@ -870,7 +872,7 @@ def create_question_set():
         question_set={},
         contests=contests,
         username=username,
-        existing_ids=existing_ids
+        existing_ids=existing_ids,
     )
 
 
@@ -1216,10 +1218,6 @@ def edit_contest(old_id_concurs):
         participants = request.form.getlist("participants")
         id_set = request.form.get("id_set")
 
-        # if not all([new_id_concurs, title, datetime, id_set]):
-        #     flash("Toate câmpurile sunt obligatorii!", "danger")
-        #     return redirect(url_for("edit_contest", old_id_concurs=old_id_concurs))
-
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -1238,11 +1236,13 @@ def edit_contest(old_id_concurs):
                         "danger",
                     )
                     conn.rollback()
-                    return redirect(url_for("edit_contest", old_id_concurs=old_id_concurs))
+                    return redirect(
+                        url_for("edit_contest", old_id_concurs=old_id_concurs)
+                    )
                 elif new_id_concurs != old_id_concurs:
                     cursor.execute(
                         "UPDATE concurs SET id_concurs = %s WHERE id_concurs = %s",
-                        (new_id_concurs, old_id_concurs)
+                        (new_id_concurs, old_id_concurs),
                     )
 
                     # id was changed, so we do this to simplify control flow
@@ -1259,28 +1259,29 @@ def edit_contest(old_id_concurs):
             if title:
                 cursor.execute(
                     "UPDATE concurs SET titlu = %s WHERE id_concurs = %s",
-                    (title, old_id_concurs)
+                    (title, old_id_concurs),
                 )
             if department:
                 cursor.execute(
                     "UPDATE concurs SET departament = %s WHERE id_concurs = %s",
-                    (department, old_id_concurs)
+                    (department, old_id_concurs),
                 )
             if branch:
                 cursor.execute(
                     "UPDATE concurs SET sucursala = %s WHERE id_concurs = %s",
-                    (branch, old_id_concurs)
+                    (branch, old_id_concurs),
                 )
             if datetime:
                 cursor.execute(
                     "UPDATE concurs SET data_ora = %s WHERE id_concurs = %s",
-                    (datetime, old_id_concurs)
+                    (datetime, old_id_concurs),
                 )
 
             # Handle the record in `concursuri_seturi`
             if id_set != "none" and id_set is not None:
                 cursor.execute(
-                    "DELETE FROM concursuri_seturi WHERE id_concurs = %s", (old_id_concurs,)
+                    "DELETE FROM concursuri_seturi WHERE id_concurs = %s",
+                    (old_id_concurs,),
                 )
 
                 cursor.execute(
@@ -1399,10 +1400,13 @@ def edit_contest(old_id_concurs):
 
             cursor.execute(
                 "SELECT DISTINCT username FROM participanti_scoruri WHERE id_concurs = %s",
-                (old_id_concurs,))
+                (old_id_concurs,),
+            )
             completed_participants = {row[0] for row in cursor.fetchall()}
 
-            participants_to_remove = current_participants - set(participants) - completed_participants
+            participants_to_remove = (
+                current_participants - set(participants) - completed_participants
+            )
             participants_to_add = set(participants) - current_participants
 
             # Handle participants
@@ -1410,7 +1414,10 @@ def edit_contest(old_id_concurs):
                 for participant in participants_to_remove:
                     cursor.execute(
                         "DELETE FROM participanti_concurs WHERE username = %s AND id_concurs = %s",
-                        (participant, old_id_concurs,),
+                        (
+                            participant,
+                            old_id_concurs,
+                        ),
                     )
             if participants_to_add:
                 for participant in participants_to_add:
@@ -1463,7 +1470,8 @@ def edit_contest(old_id_concurs):
 
             cursor.execute(
                 "SELECT DISTINCT username FROM participanti_scoruri WHERE id_concurs = %s",
-                (old_id_concurs,))
+                (old_id_concurs,),
+            )
             completed_participants = [row[0] for row in cursor.fetchall()]
 
             cursor.execute(
@@ -1655,7 +1663,6 @@ def delete_question_set(id_set):
 @app.route("/edit_question_set/<id_set>", methods=["GET", "POST"])
 @authenticate
 def edit_question_set(id_set):
-
     username = session["username"]
 
     if request.method == "POST":
@@ -1663,7 +1670,7 @@ def edit_question_set(id_set):
         nume_set = re.sub("\s+", " ", request.form.get("nume_set"))
 
         if not new_id_set or not nume_set:
-            flash(f"Toate câmpurile sunt obligatorii.", "danger")
+            flash("Toate câmpurile sunt obligatorii.", "danger")
             return redirect(url_for("edit_question_set", id_set=id_set))
 
         connection = None
@@ -1689,7 +1696,7 @@ def edit_question_set(id_set):
 
             if id_set_exists and new_id_set != id_set:
                 flash(
-                    f"ID-ul nou al setului de întrebări există deja! Te rugăm să alegi un alt ID.",
+                    "ID-ul nou al setului de întrebări există deja! Te rugăm să alegi un alt ID.",
                     "danger",
                 )
                 connection.rollback()
@@ -1729,7 +1736,9 @@ def edit_question_set(id_set):
 
             # Iterate through questions and update or insert them
             for i in range(18):
-                question_text = re.sub("\s+", " ", request.form.get(f"questions[{i}][question]"))
+                question_text = re.sub(
+                    "\s+", " ", request.form.get(f"questions[{i}][question]")
+                )
                 question_id = request.form.get(f"questions[{i}][id_intrebare]")
                 answer_count = int(request.form.get(f"questions[{i}][answer_count]"))
 
@@ -1759,7 +1768,11 @@ def edit_question_set(id_set):
                         "DELETE FROM raspunsuri WHERE id_intrebare = %s", (question_id,)
                     )
                     for j in range(answer_count):
-                        raspuns = re.sub("\s+", " ", request.form.get(f"questions[{i}][answers][{j}][answer]"))
+                        raspuns = re.sub(
+                            "\s+",
+                            " ",
+                            request.form.get(f"questions[{i}][answers][{j}][answer]"),
+                        )
                         punctaj = int(
                             request.form.get(f"questions[{i}][answers][{j}][score]")
                         )
@@ -1815,7 +1828,7 @@ def edit_question_set(id_set):
             existing_ids = [e for (e,) in cursor.fetchall()]
 
             if not question_set:
-                flash(f"Setul de întrebări nu a fost găsit.", "danger")
+                flash("Setul de întrebări nu a fost găsit.", "danger")
                 return redirect(url_for("view_question_sets"))
 
             # Fetch associated questions and answers
@@ -1890,7 +1903,7 @@ def create_branch():
             existing_branch = cursor.fetchone()
 
             if existing_branch:
-                flash(f"Această sucursală există deja!", "danger")
+                flash("Această sucursală există deja!", "danger")
                 return redirect(url_for("create_branch"))
 
             cursor.execute("INSERT INTO sucursale (sucursala) VALUES (%s)", (branch,))
@@ -1952,7 +1965,7 @@ def create_department():
                 )
 
             connection.commit()
-            flash(f"Departamentele au fost adăugate cu succes!", "success")
+            flash("Departamentele au fost adăugate cu succes!", "success")
             return redirect(url_for("view_department"))
 
         except (Exception, psycopg2.Error) as error:
@@ -2039,7 +2052,7 @@ def edit_department(sucursala, departament):
             )
 
             connection.commit()
-            flash(f"Departamentul a fost actualizat cu succes!", "success")
+            flash("Departamentul a fost actualizat cu succes!", "success")
 
         except psycopg2.Error as error:
             print("Eroare PostgreSQL:", error)
@@ -2387,7 +2400,7 @@ def view_test(id_set):
         id_concurs = request.args.get("id_concurs")
 
         if not id_concurs or not id_concurs.isdigit():
-            flash(f"Id-ul concursului lipsește sau nu este valid.", "danger")
+            flash("Id-ul concursului lipsește sau nu este valid.", "danger")
             return redirect(url_for("view_question_sets"))
 
         username = session["username"]
@@ -2398,7 +2411,7 @@ def view_test(id_set):
         user_is_participant = cursor.fetchone()
 
         if not user_is_participant:
-            flash(f"Utilizatorul nu este participant la acest concurs.", "danger")
+            flash("Utilizatorul nu este participant la acest concurs.", "danger")
             return redirect(url_for("view_question_sets"))
 
         if request.method == "POST":
@@ -2430,7 +2443,7 @@ def view_test(id_set):
                             continue  # Skip this answer and continue with the next
 
             connection.commit()
-            flash(f"Testul a fost trimis cu succes!", "success")
+            flash("Testul a fost trimis cu succes!", "success")
             return redirect(url_for("view_question_sets"))
 
         cursor.execute(
@@ -2517,18 +2530,21 @@ def solve_quiz(id_chestionar):
             for question in questions_answers.keys():
                 cursor.execute(
                     "SELECT id_raspuns, punctaj FROM raspunsuri WHERE id_intrebare = %s",
-                    (question,)
+                    (question,),
                 )
                 answers_predefined = cursor.fetchall()
-                answers_ids = {answer[0] for answer in answers_predefined}
                 answers_points = {answer[0]: answer[1] for answer in answers_predefined}
-                answers_wrong = [answer[0] for answer in answers_predefined if answer[1] == 0]
+                answers_wrong = [
+                    answer[0] for answer in answers_predefined if answer[1] == 0
+                ]
 
                 question_score = 0
                 correct = True
 
                 # for any incorrect answer selected (along with other correct ones), the score is 0
-                if any(answer in answers_wrong for answer in questions_answers[question]):
+                if any(
+                    answer in answers_wrong for answer in questions_answers[question]
+                ):
                     correct = False
 
                 for answer in questions_answers[question]:
@@ -2539,7 +2555,13 @@ def solve_quiz(id_chestionar):
                         INSERT INTO participanti_raspuns (username, id_concurs, id_intrebare, id_raspuns, punctaj)
                         VALUES (%s, %s::VARCHAR, %s, %s, %s)
                     """,
-                        (username, id_concurs, question, answer, answers_points[answer] if correct else 0),
+                        (
+                            username,
+                            id_concurs,
+                            question,
+                            answer,
+                            answers_points[answer] if correct else 0,
+                        ),
                     )
 
                 total_score += question_score
@@ -3000,7 +3022,9 @@ def test_report(id_concurs, id_set, username, total_score):
                     if not is_correct:
                         questions[question_id]["user_answered_correctly"] = False
                     else:
-                        questions[question_id]["total_score"] += score  # Add the score for the selected answer
+                        questions[question_id]["total_score"] += (
+                            score  # Add the score for the selected answer
+                        )
 
                 questions[question_id]["answers"].append(
                     {
@@ -3013,7 +3037,10 @@ def test_report(id_concurs, id_set, username, total_score):
                 )
 
             for question in questions.keys():
-                if any(answer["selected"] and not answer["is_correct"] for answer in questions[question]["answers"]):
+                if any(
+                    answer["selected"] and not answer["is_correct"]
+                    for answer in questions[question]["answers"]
+                ):
                     questions[question]["total_score"] = 0
 
             return render_template(
