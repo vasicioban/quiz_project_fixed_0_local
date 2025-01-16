@@ -155,14 +155,23 @@
         .form-check-input {
             margin-right: 10px;
         }
+
+        /* invalid fields */
+        input:user-invalid,
+        input:focus:user-invalid {
+            border-color: #900;
+            background-color: #fdd;
+        }
     </style>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const branchesDepartments = JSON.parse('{{ branches_departments|tojson|safe }}');
             const currentDepartment = '{{ contest[3] }}';
+            const used_ids = JSON.parse('{{ existing_ids|tojson|safe }}');
 
             const branchSelect = document.getElementById("branch");
             const departmentSelect = document.getElementById("department");
+            const idInput = document.querySelector("#id_concurs");
 
             function updateDepartments() {
                 const selectedBranch = branchSelect.value;
@@ -182,8 +191,33 @@
                 }
             }
 
-            branchSelect.addEventListener("change", updateDepartments);
+            function checkId() {
+                return used_ids.includes(idInput.value);
+            }
+
+            function handleIdInput() {
+                idInput.setCustomValidity("");
+
+                if (checkId()) {
+                    idInput.setCustomValidity("Acest ID este deja utilizat. Te rugăm să alegi altul.");
+                }
+            }
+
+            function handleDepartment() {
+                departmentSelect.removeAttribute("disabled");
+
+                if (branchSelect.value) {
+                    return;
+                }
+
+                departmentSelect.setAttribute("disabled", true);
+            }
+
+            branchSelect.dispatchEvent(new Event("change"));
+            idInput.addEventListener("input", handleIdInput);
+            branchSelect.addEventListener("change", handleDepartment);
             updateDepartments();
+            handleDepartment();
         });
     </script>
 </head>
@@ -216,19 +250,17 @@
             <div class="form-group">
                 <label for="id_concurs">ID Concurs:</label>
                 <input type="text" id="id_concurs" name="id_concurs" value="{{ contest[0] }}" placeholder="ID unic"
-                    required
-                    {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
+                    required {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
             </div>
             <div class="form-group">
                 <label for="title">Titlu:</label>
                 <input type="text" id="title" name="title" value="{{ contest[1] }}" placeholder="Denumire Concurs"
-                    required
-                    {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
+                    required {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
             </div>
             <div class="form-group">
                 <label for="branch">Sucursala:</label>
-                <select id="branch" name="branch" required
-                    {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
+                <select id="branch" name="branch" required {% if completed %} disabled
+                    title="Acest concurs a fost deja completat" {% endif %}>
                     <option value="" disabled>Selectați sucursala</option>
                     {% for branch in branches %}
                     <option value="{{ branch }}" {% if branch==contest[2] %}selected{% endif %}>{{ branch }}</option>
@@ -237,15 +269,15 @@
             </div>
             <div class="form-group">
                 <label for="department">Departament:</label>
-                <select id="department" name="department" required
-                    {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
+                <select id="department" name="department" required {% if completed %} disabled
+                    title="Acest concurs a fost deja completat" {% endif %}>
                     <option value="" disabled>Selectați departamentul</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="datetime">Data și ora:</label>
-                <input type="datetime-local" id="datetime" name="datetime" value="{{ contest[4] }}" required
-                    {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
+                <input type="datetime-local" id="datetime" name="datetime" value="{{ contest[4] }}" required {% if
+                    completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
             </div>
             <div class="form-group">
                 <label for="participants">Concurenți:</label>
@@ -253,9 +285,9 @@
                     {% for participant in available_participants %}
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="participants" value="{{ participant }}"
-                            id="participant_{{ loop.index }}"
-                            {% if participant in selected_participants %} checked {% endif %}
-                            {% if participant in completed_participants %} disabled title="Acest concurent a completat concursul" {% endif %}>
+                            id="participant_{{ loop.index }}" {% if participant in selected_participants %} checked {%
+                            endif %} {% if participant in completed_participants %} disabled
+                            title="Acest concurent a completat concursul" {% endif %}>
                         <label class="form-check-label" for="participant_{{ loop.index }}">
                             {{ participant }}
                         </label>
@@ -265,8 +297,8 @@
             </div>
             <div class="form-group">
                 <label for="id_set">Set de întrebări:</label>
-                <select id="id_set" name="id_set" required
-                    {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
+                <select id="id_set" name="id_set" required {% if completed %} disabled
+                    title="Acest concurs a fost deja completat" {% endif %}>
                     <option value="none" {% if selected_set=='none' %}selected{% endif %}>|none|</option>
                     {% for set in question_sets %}
                     <option value="{{ set[0] }}" {% if set[0]==selected_set %}selected{% endif %}>{{ set[1] }}</option>

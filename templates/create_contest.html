@@ -153,6 +153,13 @@
         .alert-danger {
             background-color: #f1b1b9;
         }
+
+        /* invalid fields */
+        input:user-invalid,
+        input:focus:user-invalid {
+            border-color: #900;
+            background-color: #fdd;
+        }
     </style>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -170,6 +177,8 @@
             const branchesDepartments = JSON.parse('{{ organizare|tojson|safe }}');
             const branchSelect = document.getElementById("branch");
             const departmentSelect = document.getElementById("department");
+            const idInput = document.querySelector("#id_concurs");
+            const used_ids = JSON.parse('{{ existing_ids|tojson|safe }}');
 
             branchSelect.addEventListener("change", function () {
                 const selectedBranch = branchSelect.value;
@@ -184,7 +193,30 @@
                 });
             });
 
+            function checkId() {
+                return used_ids.includes(idInput.value);
+            }
+
+            function handleIdInput() {
+                idInput.setCustomValidity("");
+
+                if (checkId()) {
+                    idInput.setCustomValidity("Acest ID este deja utilizat. Te rugăm să alegi altul.");
+                }
+            }
+
+            function handleDepartment() {
+                if (!branchSelect.value) {
+                    departmentSelect.setAttribute("disabled", true);
+                } else {
+                    departmentSelect.removeAttribute("disabled");
+                }
+            }
+
             branchSelect.dispatchEvent(new Event("change"));
+            idInput.addEventListener("input", handleIdInput);
+            branchSelect.addEventListener("change", handleDepartment);
+            handleDepartment();
         });
     </script>
 </head>

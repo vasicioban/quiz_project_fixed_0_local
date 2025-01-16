@@ -1085,6 +1085,9 @@ def create_contest():
         cursor.execute("SELECT id_set, nume_set FROM seturi_intrebari")
         question_sets = cursor.fetchall()
 
+        cursor.execute("SELECT id_concurs FROM concurs")
+        existing_ids = [e for (e,) in cursor.fetchall()]
+
     except (Exception, psycopg2.Error) as error:
         print("Eroare la accesarea bazei de date:", error)
         flash(
@@ -1105,6 +1108,7 @@ def create_contest():
         organizare=organizare,
         participants=participants,
         question_sets=question_sets,
+        existing_ids=existing_ids,
     )
 
 
@@ -1472,6 +1476,9 @@ def edit_contest(old_id_concurs):
             branches_departments = [(item[0], item[1]) for item in organizare]
             branches = list(set([item[0] for item in branches_departments]))
 
+            cursor.execute("SELECT id_concurs FROM concurs")
+            existing_ids = [e for (e,) in cursor.fetchall()]
+
             return render_template(
                 "edit_contest.html",
                 contest=contest,
@@ -1484,6 +1491,7 @@ def edit_contest(old_id_concurs):
                 selected_set=selected_set,
                 username=username,
                 completed=len(completed_participants) > 0,
+                existing_ids=existing_ids,
             )
 
         except Exception as e:
