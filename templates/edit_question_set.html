@@ -310,7 +310,7 @@
     }
 
     function sanitize(str) {
-        return str.trim().replace(/\s+/g, " ");
+        return typeof(str) === "string" ? str.trim().replace(/\s+/g, " ") : str;
     }
 
     function validateForm() {
@@ -322,7 +322,7 @@
         if (!idSetInput.value) {
             alert("Te rugăm să introduci un ID pentru setul de întrebări.");
             return false;
-        } else if (parseInt(idSetInput.value) in used_ids) {
+        } else if (used_ids.includes(parseInt(idSetInput.value))) {
             alert("Acest ID este deja utilizat. Te rugăm să alegi altul.");
             return false;
         }
@@ -350,7 +350,6 @@
                 const answerInput = answer.querySelector('input[type="text"]');
                 const scoreInput = answer.querySelector('input[type="number"]');
                 answerInput.value = sanitize(answerInput.value);
-                scoreInput.value = sanitize(scoreInput.value);
                 if (!answerInput.value) {
                     alert("Toate răspunsurile trebuie să aibă un text.");
                     return false;
