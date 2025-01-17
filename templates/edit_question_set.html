@@ -322,7 +322,7 @@
         if (!idSetInput.value) {
             alert("Te rugăm să introduci un ID pentru setul de întrebări.");
             return false;
-        } else if (used_ids.includes(parseInt(idSetInput.value))) {
+        } else if (used_ids.includes(parseInt(idSetInput.value)) && idSetInput.value != '{{ question_set[0] }}') {
             alert("Acest ID este deja utilizat. Te rugăm să alegi altul.");
             return false;
         }
