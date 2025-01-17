@@ -1472,7 +1472,7 @@ def edit_contest(old_id_concurs):
                 "SELECT DISTINCT username FROM participanti_scoruri WHERE id_concurs = %s",
                 (old_id_concurs,),
             )
-            completed_participants = [row[0] for row in cursor.fetchall()]
+            completed = len(cursor.fetchall()) > 0
 
             cursor.execute(
                 "SELECT id_set FROM concursuri_seturi WHERE id_concurs = %s",
@@ -1494,11 +1494,10 @@ def edit_contest(old_id_concurs):
                 branches_departments=branches_departments,
                 available_participants=available_participants,
                 selected_participants=selected_participants,
-                completed_participants=completed_participants,
                 question_sets=question_sets,
                 selected_set=selected_set,
                 username=username,
-                completed=len(completed_participants) > 0,
+                completed=completed,
                 existing_ids=existing_ids,
             )
 

@@ -286,8 +286,8 @@
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="participants" value="{{ participant }}"
                             id="participant_{{ loop.index }}" {% if participant in selected_participants %} checked {%
-                            endif %} {% if participant in completed_participants %} disabled
-                            title="Acest concurent a completat concursul" {% endif %}>
+                            endif %} {% if completed %} disabled
+                            title="Acest concurs a fost deja completat" {% endif %}>
                         <label class="form-check-label" for="participant_{{ loop.index }}">
                             {{ participant }}
                         </label>
