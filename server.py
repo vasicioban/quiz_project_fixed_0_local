@@ -108,13 +108,7 @@ def authorize(
 # Check credentials function (verify in database)
 def check_credentials(username, password):
     try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres",
-        )
+        connection = connect_db()
         cursor = connection.cursor()
 
         # Check if the user exists in 'users' table
@@ -146,13 +140,7 @@ def check_credentials(username, password):
 
 def get_user(username):
     try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres",
-        )
+        connection = connect_db()
         cursor = connection.cursor()
 
         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
@@ -1195,16 +1183,6 @@ def preview_quizzes(id_concurs):
     )
 
 
-def get_db_connection():
-    return psycopg2.connect(
-        user="postgres",
-        password="vasilica",
-        host="192.168.16.164",
-        port="5432",
-        database="postgres",
-    )
-
-
 @app.route("/edit_contest/<old_id_concurs>", methods=["GET", "POST"])
 def edit_contest(old_id_concurs):
     username = session.get("username")
@@ -1218,7 +1196,7 @@ def edit_contest(old_id_concurs):
         participants = request.form.getlist("participants")
         id_set = request.form.get("id_set")
 
-        conn = get_db_connection()
+        conn = connect_db()
         cursor = conn.cursor()
 
         try:
@@ -1441,7 +1419,7 @@ def edit_contest(old_id_concurs):
         return redirect(url_for("view_contests"))
 
     else:
-        conn = get_db_connection()
+        conn = connect_db()
         cursor = conn.cursor()
 
         try:
@@ -1516,13 +1494,7 @@ def edit_contest(old_id_concurs):
 @authenticate
 def delete_contest(id_concurs):
     try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres",
-        )
+        connection = connect_db()
         cursor = connection.cursor()
 
         cursor.execute(
@@ -1569,13 +1541,7 @@ def view_question_sets():
     print(f"Search term: {search_term}, Column: {column}, Order: {order}")
 
     try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres",
-        )
+        connection = connect_db()
         cursor = connection.cursor()
 
         if search_term:
@@ -1626,13 +1592,7 @@ def delete_question_set(id_set):
     if "username" not in session:
         return redirect(url_for("login"))
     try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres",
-        )
+        connection = connect_db()
         cursor = connection.cursor()
 
         cursor.execute("DELETE FROM concursuri_seturi WHERE id_set = %s", (id_set,))
@@ -1676,13 +1636,7 @@ def edit_question_set(id_set):
         cursor = None
 
         try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
 
             cursor.execute("BEGIN;")
@@ -1806,13 +1760,7 @@ def edit_question_set(id_set):
 
     else:
         try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
 
             # Fetch existing question set details
@@ -1889,13 +1837,7 @@ def create_branch():
         branch = request.form["branch"]
 
         try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
 
             cursor.execute("SELECT * FROM sucursale WHERE sucursala = %s", (branch,))
@@ -1935,13 +1877,7 @@ def create_department():
         departments = request.form.getlist("department[]")
 
         try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
 
             for department in departments:
@@ -1982,13 +1918,7 @@ def create_department():
 
     else:
         try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
             cursor.execute("SELECT sucursala FROM sucursale ORDER BY sucursala ASC")
             sucursale = cursor.fetchall()
@@ -2021,13 +1951,7 @@ def edit_department(sucursala, departament):
         new_sucursala = request.form["sucursala"]
 
         try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
 
             # Actualizare departament în tabela organizare
@@ -2068,13 +1992,7 @@ def edit_department(sucursala, departament):
 
     else:
         try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
 
             cursor.execute("SELECT sucursala FROM sucursale ORDER BY sucursala ASC")
@@ -2112,13 +2030,7 @@ def view_department():
     order = request.args.get("order", "asc")
 
     try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres",
-        )
+        connection = connect_db()
         cursor = connection.cursor()
 
         if search_query:
@@ -2167,14 +2079,9 @@ def view_department():
 @authenticate
 def delete_department(sucursala, departament):
     try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres",
-        )
+        connection = connect_db()
         cursor = connection.cursor()
+
         cursor.execute(
             """
             DELETE FROM organizare
@@ -2211,13 +2118,7 @@ def view_branches():
     order = request.args.get("order", "asc")
 
     try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres",
-        )
+        connection = connect_db()
         cursor = connection.cursor()
 
         if search_query:
@@ -2269,14 +2170,9 @@ def edit_branch(sucursala):
         new_sucursala = request.form["sucursala"]
 
         try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
+
             cursor.execute(
                 """
                 UPDATE sucursale
@@ -2330,13 +2226,7 @@ def edit_branch(sucursala):
 @authenticate
 def delete_branch(sucursala):
     try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres",
-        )
+        connection = connect_db()
         cursor = connection.cursor()
 
         # Set sucursala to NULL or 'None' in related tables before deletion
@@ -2387,13 +2277,7 @@ def delete_branch(sucursala):
 def view_test(id_set):
     username = session["username"]
     try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres",
-        )
+        connection = connect_db()
         cursor = connection.cursor()
 
         id_concurs = request.args.get("id_concurs")
@@ -2503,13 +2387,7 @@ def solve_quiz(id_chestionar):
         print(form)
 
         try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
             questions_answers = dict()
 
@@ -2668,13 +2546,7 @@ def solve_quiz(id_chestionar):
         contest_start_time = None
 
         try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
 
             cursor.execute(
@@ -2840,13 +2712,7 @@ def view_contest(id_concurs):
     current_time = datetime.now()
 
     try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres",
-        )
+        connection = connect_db()
         cursor = connection.cursor()
 
         cursor.execute(
@@ -2923,13 +2789,7 @@ def test_report(id_concurs, id_set, username, total_score):
             pdf_content = request.files["pdf_file"].read()
 
             # Setup database connection
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
 
             cursor.execute(
@@ -2967,13 +2827,7 @@ def test_report(id_concurs, id_set, username, total_score):
 
     else:
         try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
 
             cursor.execute(
@@ -3084,13 +2938,7 @@ def view_users():
         column = "username"
 
     try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres",
-        )
+        connection = connect_db()
         cursor = connection.cursor()
 
         query = """
@@ -3153,13 +3001,7 @@ def edit_user(id):
             return redirect(url_for("edit_user", id=id))
 
         try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
 
             cursor.execute(
@@ -3207,13 +3049,7 @@ def edit_user(id):
                 connection.close()
     else:
         try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
 
             cursor.execute(
@@ -3240,13 +3076,7 @@ def edit_user(id):
 @app.route("/delete_user/<int:id>")
 def delete_user(id):
     try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres",
-        )
+        connection = connect_db()
         cursor = connection.cursor()
 
         connection.autocommit = False
