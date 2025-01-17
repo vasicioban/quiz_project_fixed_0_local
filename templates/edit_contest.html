@@ -206,7 +206,7 @@
             function handleDepartment() {
                 departmentSelect.removeAttribute("disabled");
 
-                if (branchSelect.value) {
+                if (branchSelect.value && !branchSelect.hasAttribute("disabled")) {
                     return;
                 }
 
