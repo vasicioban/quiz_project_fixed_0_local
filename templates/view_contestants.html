@@ -370,7 +370,17 @@
                             {% if contestant.contests_assigned %}
                             <ul>
                                 {% for contest in contestant.contests_assigned %}
-                                <li>{{ contest.titlu }}</li>
+                                <li>
+                                    {% if contest.completed %}
+                                    <a href="{{ url_for('test_report', id_concurs=contest.id, id_set=contest.id_set, username=contestant.username, total_score=contest.total_score) }}"
+                                        target="_blank">
+                                        {% endif %}
+                                        {{ contest.titlu }}
+
+                                        {% if contest.completed %}
+                                    </a>
+                                    {% endif %}
+                                </li>
                                 {% endfor %}
                             </ul>
                             {% else %}

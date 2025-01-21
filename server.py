@@ -333,30 +333,43 @@ def view_contestants():
 
         contestants = cursor.fetchall()
 
+        contestants_data = []
+        for contestant in contestants:
+            contests_assigned = []
+            if contestant[3] != [None] and contestant[4] != [
+                None
+            ]:  # Check if there are assigned contests
+                for i in range(len(contestant[3])):
+                    cursor.execute(
+                        "SELECT id_set, scor_total FROM participanti_scoruri WHERE id_concurs = %s AND username = %s",
+                        (contestant[3][i], contestant[1]),
+                    )
+                    contest = cursor.fetchone()
+                    completed = contest is not None
+                    contests_assigned.append(
+                        {
+                            "id": contestant[3][i],
+                            "titlu": contestant[4][i],
+                            "id_set": contest[0] if completed else 0,
+                            "total_score": contest[1] if completed else 0,
+                            "completed": completed,
+                        }
+                    )
+
+            contestants_data.append(
+                {
+                    "id": contestant[0],
+                    "username": contestant[1],
+                    "user_type": contestant[2],
+                    "contests_assigned": contests_assigned,
+                }
+            )
     except (Exception, psycopg2.Error) as error:
         print("Eroare la preluarea datelor din PostgreSQL:", error)
     finally:
         if connection:
             cursor.close()
             connection.close()
-
-    contestants_data = []
-    for contestant in contestants:
-        contests_assigned = []
-        if contestant[3] and contestant[4]:  # Check if there are assigned contests
-            for i in range(len(contestant[3])):
-                contests_assigned.append(
-                    {"id": contestant[3][i], "titlu": contestant[4][i]}
-                )
-
-        contestants_data.append(
-            {
-                "id": contestant[0],
-                "username": contestant[1],
-                "user_type": contestant[2],
-                "contests_assigned": contests_assigned,
-            }
-        )
 
     # Sorting logic
     reverse_order = order == "desc"
