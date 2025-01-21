@@ -344,15 +344,21 @@ def view_contestants():
                         "SELECT id_set, scor_total FROM participanti_scoruri WHERE id_concurs = %s AND username = %s",
                         (contestant[3][i], contestant[1]),
                     )
-                    contest = cursor.fetchone()
-                    completed = contest is not None
+                    rows = cursor.fetchall()
+                    variants = []
+                    for row in rows:
+                        variants.append({
+                            "id_set": row[0],
+                            "total_score": row[1],
+                            "title": "Standard" if len(variants) == 0 else "Rezerv─â",
+                            "completed": row[1] is not None
+                        })
+
                     contests_assigned.append(
                         {
                             "id": contestant[3][i],
                             "titlu": contestant[4][i],
-                            "id_set": contest[0] if completed else 0,
-                            "total_score": contest[1] if completed else 0,
-                            "completed": completed,
+                            "variants": variants
                         }
                     )
 

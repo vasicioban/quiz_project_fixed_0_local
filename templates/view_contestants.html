@@ -278,6 +278,14 @@
         .alert-danger {
             background-color: #f1b1b9;
         }
+
+        li a {
+            background-color: #007bff;
+            border-radius: 4px;
+            padding: 5px;
+            text-decoration: none;
+            color: white;
+        }
     </style>
 </head>
 
@@ -371,15 +379,13 @@
                             <ul>
                                 {% for contest in contestant.contests_assigned %}
                                 <li>
-                                    {% if contest.completed %}
-                                    <a href="{{ url_for('test_report', id_concurs=contest.id, id_set=contest.id_set, username=contestant.username, total_score=contest.total_score) }}"
-                                        target="_blank">
-                                        {% endif %}
                                         {{ contest.titlu }}
-
-                                        {% if contest.completed %}
-                                    </a>
+                                    {% for variant in contest.variants %}
+                                    {% if variant.completed %}
+                                    <a href="{{ url_for('test_report', id_concurs=contest.id, id_set=variant.id_set, username=contestant.username, total_score=variant.total_score) }}"
+                                        target="_blank">{{ variant.title }}</a>
                                     {% endif %}
+                                    {% endfor %}
                                 </li>
                                 {% endfor %}
                             </ul>
