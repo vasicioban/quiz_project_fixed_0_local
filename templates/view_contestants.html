@@ -206,20 +206,12 @@
 
         .participants-box {
             border: 1px solid #ccc;
-            padding: 5px;
-            width: 95%;
             max-height: 50px;
             overflow-y: scroll;
         }
 
-        .participants-box ul {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .participants-box ul li {
-            margin-bottom: 5px;
+        .participants-box:not(:has(table)) {
+            padding: 5px;
         }
 
         .add-button {
@@ -279,7 +271,12 @@
             background-color: #f1b1b9;
         }
 
-        li a {
+        .participants-box table {
+            margin: 0;
+            border-style: hidden;
+        }
+
+        td a {
             background-color: #007bff;
             border-radius: 4px;
             padding: 5px;
@@ -376,19 +373,22 @@
                     <td>
                         <div class="participants-box">
                             {% if contestant.contests_assigned %}
-                            <ul>
+                            <table>
+
                                 {% for contest in contestant.contests_assigned %}
-                                <li>
-                                    {{ contest.titlu }}
-                                    {% for variant in contest.variants %}
-                                    {% if variant.completed %}
-                                    <a href="{{ url_for('test_report', id_concurs=contest.id, id_set=variant.id_set, username=contestant.username, total_score=variant.total_score) }}"
-                                        target="_blank">{{ variant.title }}</a>
-                                    {% endif %}
-                                    {% endfor %}
-                                </li>
+                                <tr>
+                                    <td>{{ contest.titlu }}</td>
+                                    <td>
+                                        {% for variant in contest.variants %}
+                                        {% if variant.completed %}
+                                        <a href="{{ url_for('test_report', id_concurs=contest.id, id_set=variant.id_set, username=contestant.username, total_score=variant.total_score) }}"
+                                            target="_blank">{{ variant.title }}</a>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                </tr>
                                 {% endfor %}
-                            </ul>
+                            </table>
                             {% else %}
                             Niciun concurs asignat
                             {% endif %}
