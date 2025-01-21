@@ -369,7 +369,7 @@
             </thead>
             <tbody>
                 {% for contestant in contestants %}
-                <tr>
+                <tr onclick="toggleExpand(event)">
                     <td>{{ contestant.id }}</td>
                     <td>{{ contestant.username }}</td>
                     <!--<td>{{ contestant.user_type }}</td> -->
@@ -379,7 +379,7 @@
                             <ul>
                                 {% for contest in contestant.contests_assigned %}
                                 <li>
-                                        {{ contest.titlu }}
+                                    {{ contest.titlu }}
                                     {% for variant in contest.variants %}
                                     {% if variant.completed %}
                                     <a href="{{ url_for('test_report', id_concurs=contest.id, id_set=variant.id_set, username=contestant.username, total_score=variant.total_score) }}"
@@ -421,5 +421,15 @@
         {% endif %}
     </div>
 </body>
+<script>
+    function toggleExpand(event) {
+        box = event.currentTarget.querySelector(".participants-box");
+        if (box.style.maxHeight == "100%") {
+            box.style.maxHeight = "35px";
+            return;
+        }
 
-</html>
+        box.style.maxHeight = "100%"
+    }
+</script>
+</html>
