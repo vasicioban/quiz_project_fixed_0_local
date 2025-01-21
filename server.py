@@ -347,18 +347,22 @@ def view_contestants():
                     rows = cursor.fetchall()
                     variants = []
                     for row in rows:
-                        variants.append({
-                            "id_set": row[0],
-                            "total_score": row[1],
-                            "title": "Standard" if len(variants) == 0 else "Rezerv─â",
-                            "completed": row[1] is not None
-                        })
+                        variants.append(
+                            {
+                                "id_set": row[0],
+                                "total_score": row[1],
+                                "title": "Standard"
+                                if len(variants) == 0
+                                else "Rezerva",
+                                "completed": row[1] is not None,
+                            }
+                        )
 
                     contests_assigned.append(
                         {
                             "id": contestant[3][i],
                             "titlu": contestant[4][i],
-                            "variants": variants
+                            "variants": variants,
                         }
                     )
 
@@ -924,15 +928,10 @@ def create_contest():
             return redirect(url_for("create_contest"))
 
         try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
+            connection = connect_db()
             cursor = connection.cursor()
 
+            # Check whether id_concurs already exists and error out
             cursor.execute(
                 "SELECT id_concurs FROM concurs WHERE id_concurs = %s", (id_concurs,)
             )
@@ -944,26 +943,58 @@ def create_contest():
                 )
                 return redirect(url_for("create_contest"))
 
+            # Get random questions from the given set
             cursor.execute(
                 """
                 SELECT id_intrebare FROM intrebari
-                WHERE id_set = %s
+                WHERE id_set = %s AND NOT is_used
                 ORDER BY random()
             """,
                 (id_set,),
             )
             available_questions = cursor.fetchall()
 
-            if len(available_questions) < 6:
+            # Get number of questions in the set
+            cursor.execute(
+                """
+                SELECT COUNT(*) FROM intrebari
+                WHERE id_set = %s
+                """,
+                (id_set,),
+            )
+            total_questions = cursor.fetchone()[0]
+            if len(available_questions) < 6 and total_questions < 6:
                 flash(
                     "Setul de întrebări nu are suficiente întrebări disponibile (minim 6).",
                     "danger",
                 )
                 return redirect(url_for("create_contest"))
+            elif len(available_questions) < 6:
+                # Reset used status for all questions in the set
+                cursor.execute(
+                    """
+                    UPDATE intrebari
+                    SET is_used = false
+                    WHERE id_set = %s
+                    """,
+                    (id_set,),
+                )
+                # Get all questions again
+                cursor.execute(
+                    """
+                        SELECT id_intrebare FROM intrebari
+                        WHERE id_set = %s AND NOT is_used
+                        ORDER BY random()
+                    """,
+                    (id_set,),
+                )
+                available_questions = cursor.fetchall()
 
+            # Set 3 random questions for each of the quizzes
             quiz1_questions = available_questions[:3]
             quiz2_questions = available_questions[3:6]
 
+            # Add contest
             cursor.execute(
                 """
                 INSERT INTO concurs (id_concurs, titlu, sucursala, departament, data_ora)
@@ -972,6 +1003,7 @@ def create_contest():
                 (id_concurs, title, branch, department, datetime),
             )
 
+            # Add the contest to each participant
             for participant in participants:
                 cursor.execute(
                     """
@@ -981,6 +1013,7 @@ def create_contest():
                     (id_concurs, participant),
                 )
 
+            # Create questionnaire
             cursor.execute(
                 """
                 INSERT INTO chestionare (id_concurs, numar_chestionar, tip, id_set)
@@ -989,6 +1022,7 @@ def create_contest():
                 (id_concurs, 1, "standard", id_set, id_concurs, 2, "rezerva", id_set),
             )
 
+            # Get questionnaire IDs
             cursor.execute(
                 """
                 SELECT id_chestionar, tip FROM chestionare
@@ -1000,6 +1034,7 @@ def create_contest():
             quiz1_id = next(id for id, tip in quiz_ids if tip == "standard")
             quiz2_id = next(id for id, tip in quiz_ids if tip == "rezerva")
 
+            # Add questions to standard set
             for question_id in quiz1_questions:
                 cursor.execute(
                     """
@@ -1009,6 +1044,7 @@ def create_contest():
                     (quiz1_id, question_id[0]),
                 )
 
+            # Add questions to reserve set
             for question_id in quiz2_questions:
                 cursor.execute(
                     """
@@ -1018,15 +1054,17 @@ def create_contest():
                     (quiz2_id, question_id[0]),
                 )
 
+            # Mark used questions
             cursor.execute(
                 """
                 UPDATE intrebari
-                SET is_used = TRUE
+                SET is_used = true
                 WHERE id_intrebare IN %s
             """,
                 (tuple([q[0] for q in quiz1_questions + quiz2_questions]),),
             )
 
+            # Check whether we have remaining questions
             cursor.execute(
                 """
                 SELECT COUNT(*) FROM intrebari WHERE id_set = %s AND is_used = FALSE
@@ -1035,6 +1073,7 @@ def create_contest():
             )
             remaining_questions = cursor.fetchone()[0]
 
+            # Reset questions
             if remaining_questions == 0:
                 cursor.execute(
                     """
@@ -1045,6 +1084,7 @@ def create_contest():
                     (id_set,),
                 )
 
+            # Add contest and set to concursuri_seturi
             cursor.execute(
                 """
                 INSERT INTO concursuri_seturi (id_concurs, id_set)
