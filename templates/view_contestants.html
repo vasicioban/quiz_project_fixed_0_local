@@ -431,5 +431,8 @@
 
         box.style.maxHeight = "100%"
     }
+
+    document.querySelectorAll("tr a").forEach((e) => e.addEventListener("click", (event) => event.stopPropagation()))
 </script>
+
 </html>
