@@ -943,13 +943,27 @@ def create_contest():
                 )
                 return redirect(url_for("create_contest"))
 
+            # Get the latest version of a set
+            cursor.execute(
+                """
+                SELECT id_set
+                FROM seturi_intrebari
+                WHERE parent_id = %s
+                ORDER BY version DESC
+                LIMIT 1
+                """,
+                (id_set,),
+            )
+            # In case there are no versions, we only have the base set, so keep it
+            id_set = cursor.fetchone()[0] or id_set
+
             # Get random questions from the given set
             cursor.execute(
                 """
                 SELECT id_intrebare FROM intrebari
                 WHERE id_set = %s AND NOT is_used
                 ORDER BY random()
-            """,
+                """,
                 (id_set,),
             )
             available_questions = cursor.fetchall()
@@ -1113,13 +1127,7 @@ def create_contest():
                 connection.close()
 
     try:
-        connection = psycopg2.connect(
-            user="postgres",
-            password="vasilica",
-            host="192.168.16.164",
-            port="5432",
-            database="postgres",
-        )
+        connection = connect_db()
         cursor = connection.cursor()
 
         cursor.execute("SELECT DISTINCT sucursala FROM organizare")
@@ -1131,7 +1139,9 @@ def create_contest():
         cursor.execute("SELECT username FROM concurenti ORDER BY username ASC")
         participants = [row[0] for row in cursor.fetchall()]
 
-        cursor.execute("SELECT id_set, nume_set FROM seturi_intrebari")
+        cursor.execute(
+            "SELECT id_set, nume_set FROM seturi_intrebari WHERE parent_id IS NULL"
+        )
         question_sets = cursor.fetchall()
 
         cursor.execute("SELECT id_concurs FROM concurs")
@@ -1496,7 +1506,10 @@ def edit_contest(old_id_concurs):
             cursor.execute("SELECT username FROM concurenti ORDER BY username ASC")
             available_participants = [row[0] for row in cursor.fetchall()]
 
-            cursor.execute("SELECT id_set, nume_set FROM seturi_intrebari")
+            # Only get base versions of the sets
+            cursor.execute(
+                "SELECT id_set, nume_set FROM seturi_intrebari WHERE parent_id IS NULL"
+            )
             question_sets = cursor.fetchall()
 
             cursor.execute(
@@ -1607,7 +1620,7 @@ def view_question_sets():
             query = f"""
                 SELECT id_set, nume_set 
                 FROM seturi_intrebari 
-                WHERE LOWER(nume_set) LIKE LOWER(%s)
+                WHERE LOWER(nume_set) LIKE LOWER(%s) AND parent_id is null
                 ORDER BY {column} {order.upper()}
             """
             print(f"Executing query with search term: {query}")
@@ -1615,7 +1628,8 @@ def view_question_sets():
         else:
             query = f"""
                 SELECT id_set, nume_set 
-                FROM seturi_intrebari 
+                FROM seturi_intrebari
+                WHERE parent_id is null
                 ORDER BY {column} {order.upper()}
             """
             print(f"Executing query without search term: {query}")
@@ -1684,10 +1698,9 @@ def edit_question_set(id_set):
     username = session["username"]
 
     if request.method == "POST":
-        new_id_set = request.form.get("id_set")
-        nume_set = re.sub("\s+", " ", request.form.get("nume_set"))
+        new_name = re.sub(r"\s+", " ", request.form.get("nume_set"))
 
-        if not new_id_set or not nume_set:
+        if not new_name:
             flash("Toate câmpurile sunt obligatorii.", "danger")
             return redirect(url_for("edit_question_set", id_set=id_set))
 
@@ -1697,54 +1710,34 @@ def edit_question_set(id_set):
         try:
             connection = connect_db()
             cursor = connection.cursor()
-
             cursor.execute("BEGIN;")
 
-            # Check if the new set ID already exists
+            # Generate a new unique id_set for the new version
+            cursor.execute("SELECT MAX(id_set) FROM seturi_intrebari")
+            max_id_set = cursor.fetchone()[0] or 0
+            new_id_set = max_id_set + 1
+
+            # Get the latest version of the set
             cursor.execute(
-                "SELECT id_set FROM seturi_intrebari WHERE id_set = %s", (new_id_set,)
-            )
-            id_set_exists = cursor.fetchone()
-
-            if id_set_exists and new_id_set != id_set:
-                flash(
-                    "ID-ul nou al setului de întrebări există deja! Te rugăm să alegi un alt ID.",
-                    "danger",
-                )
-                connection.rollback()
-                return redirect(url_for("edit_question_set", id_set=id_set))
-
-            if new_id_set != id_set:
-                # Insert the new `id_set` in `seturi_intrebari` before updating related tables
-                cursor.execute(
-                    """
-                    INSERT INTO seturi_intrebari (id_set, nume_set)
-                    VALUES (%s, %s)
-                    ON CONFLICT (id_set) DO NOTHING
+                """
+                SELECT version
+                FROM seturi_intrebari
+                WHERE parent_id = %s
+                ORDER BY version DESC
+                LIMIT 1
                 """,
-                    (new_id_set, nume_set),
-                )
+                (id_set,),
+            )
+            current_version = cursor.fetchone()[0] or None
 
-                # Update foreign key references in all related tables
-                cursor.execute(
-                    "UPDATE concursuri_seturi SET id_set = %s WHERE id_set = %s",
-                    (new_id_set, id_set),
-                )
-                cursor.execute(
-                    "UPDATE intrebari SET id_set = %s WHERE id_set = %s",
-                    (new_id_set, id_set),
-                )
-
-                # Now, delete the old `id_set` from `seturi_intrebari`
-                cursor.execute(
-                    "DELETE FROM seturi_intrebari WHERE id_set = %s", (id_set,)
-                )
-            else:
-                # If the ID doesn't change, just update the name
-                cursor.execute(
-                    "UPDATE seturi_intrebari SET nume_set = %s WHERE id_set = %s",
-                    (nume_set, id_set),
-                )
+            # Insert a new version of the question set
+            cursor.execute(
+                """
+                INSERT INTO seturi_intrebari (id_set, nume_set, version, parent_id)
+                VALUES (%s, %s, %s, %s)
+                """,
+                (new_id_set, new_name, current_version + 1, id_set),
+            )
 
             # Iterate through questions and update or insert them
             for i in range(18):
@@ -1755,30 +1748,16 @@ def edit_question_set(id_set):
                 answer_count = int(request.form.get(f"questions[{i}][answer_count]"))
 
                 if question_text:
-                    if question_id:
-                        cursor.execute(
-                            """
-                            UPDATE intrebari 
-                            SET intrebare = %s, id_set = %s 
-                            WHERE id_intrebare = %s
-                        """,
-                            (question_text, new_id_set, question_id),
-                        )
-                    else:
-                        cursor.execute(
-                            """
-                            INSERT INTO intrebari (id_set, intrebare) 
-                            VALUES (%s, %s) 
-                            RETURNING id_intrebare
-                        """,
-                            (new_id_set, question_text),
-                        )
-                        question_id = cursor.fetchone()[0]
-
-                    # Remove old answers and add new ones
                     cursor.execute(
-                        "DELETE FROM raspunsuri WHERE id_intrebare = %s", (question_id,)
+                        """
+                        INSERT INTO intrebari (id_set, intrebare) 
+                        VALUES (%s, %s) 
+                        RETURNING id_intrebare
+                        """,
+                        (new_id_set, question_text),
                     )
+                    question_id = cursor.fetchone()[0]
+
                     for j in range(answer_count):
                         raspuns = re.sub(
                             "\s+",
@@ -1804,7 +1783,7 @@ def edit_question_set(id_set):
 
         except (Exception, psycopg2.Error) as error:
             if connection:
-                connection.rollback()  # Roll back all changes if there's an error
+                connection.rollback()
             flash(
                 f"A intervenit o eroare în timpul actualizării setului de întrebări: {error}",
                 "danger",
@@ -1822,27 +1801,42 @@ def edit_question_set(id_set):
             connection = connect_db()
             cursor = connection.cursor()
 
-            # Fetch existing question set details
+            # Check if the selected set has versions
             cursor.execute(
-                "SELECT id_set, nume_set FROM seturi_intrebari WHERE id_set = %s",
+                """
+                SELECT id_set, nume_set
+                FROM seturi_intrebari
+                WHERE parent_id = %s
+                ORDER BY version DESC
+                LIMIT 1
+                """,
                 (id_set,),
             )
             question_set = cursor.fetchone()
 
-            # Fetch existing ids
-            cursor.execute("SELECT id_set FROM seturi_intrebari")
-            existing_ids = [e for (e,) in cursor.fetchall()]
+            # No versions for the given set
+            if question_set is None:
+                # Fetch original question set details
+                cursor.execute(
+                    """
+                    SELECT id_set, nume_set
+                    FROM seturi_intrebari
+                    WHERE id_set = %s
+                    """,
+                    (id_set,),
+                )
+                question_set = cursor.fetchone()
 
-            if not question_set:
-                flash("Setul de întrebări nu a fost găsit.", "danger")
-                return redirect(url_for("view_question_sets"))
+            # Fetch existing ids for validation
+            cursor.execute("SELECT id_set FROM seturi_intrebari")
+            existing_ids = [e[0] for e in cursor.fetchall()]
 
             # Fetch associated questions and answers
             cursor.execute(
                 """
                 SELECT id_intrebare, intrebare FROM intrebari WHERE id_set = %s ORDER BY id_intrebare ASC
-            """,
-                (id_set,),
+                """,
+                (question_set[0],),
             )
             questions = cursor.fetchall()
 
@@ -1851,8 +1845,8 @@ def edit_question_set(id_set):
                 question_id, question_text = question
                 cursor.execute(
                     """
-                    SELECT id_raspuns, raspuns, punctaj FROM raspunsuri WHERE id_intrebare = %s ORDER BY id_raspuns ASC
-                """,
+                    SELECT raspuns, punctaj FROM raspunsuri WHERE id_intrebare = %s ORDER BY id_raspuns ASC
+                    """,
                     (question_id,),
                 )
                 answers = cursor.fetchall()
@@ -1861,11 +1855,13 @@ def edit_question_set(id_set):
                         "id_intrebare": question_id,
                         "intrebare": question_text,
                         "answers": [
-                            {"id_raspuns": ans[0], "raspuns": ans[1], "punctaj": ans[2]}
-                            for ans in answers
+                            {"raspuns": ans[0], "punctaj": ans[1]} for ans in answers
                         ],
                     }
                 )
+
+            # Send original id for the set, so that versioning can continue
+            question_set = (id_set, question_set[1])
 
         except (Exception, psycopg2.Error) as error:
             flash(
@@ -1883,8 +1879,8 @@ def edit_question_set(id_set):
         "edit_question_set.html",
         question_set=question_set,
         question_details=question_details,
+        existing_ids=existing_ids,  # Keep this for client-side validation
         username=username,
-        existing_ids=existing_ids,
     )
 
 
