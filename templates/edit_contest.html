@@ -173,15 +173,19 @@
             const branchesDepartments = JSON.parse('{{ branches_departments|tojson|safe }}');
             const currentDepartment = '{{ contest[3] }}';
             const used_ids = JSON.parse('{{ existing_ids|tojson|safe }}');
-
+    
             const branchSelect = document.getElementById("branch");
             const departmentSelect = document.getElementById("department");
             const idInput = document.querySelector("#id_concurs");
-
+    
+            const dateTimeField = document.getElementById("datetime");
+            const dateField = document.getElementById("date");
+            const timeField = document.getElementById("time");
+    
             function updateDepartments() {
                 const selectedBranch = branchSelect.value;
                 departmentSelect.innerHTML = "";
-
+    
                 branchesDepartments.forEach(function (item) {
                     if (item[0] === selectedBranch) {
                         const option = document.createElement("option");
@@ -190,34 +194,46 @@
                         departmentSelect.appendChild(option);
                     }
                 });
-
+    
                 if (currentDepartment) {
                     departmentSelect.value = currentDepartment;
                 }
             }
-
+    
             function checkId() {
                 return used_ids.includes(idInput.value);
             }
-
+    
             function handleIdInput() {
                 idInput.setCustomValidity("");
-
+    
                 if (checkId()) {
                     idInput.setCustomValidity("Acest ID este deja utilizat. Te rugăm să alegi altul.");
                 }
             }
-
+    
             function handleDepartment() {
                 departmentSelect.removeAttribute("disabled");
-
+    
                 if (branchSelect.value && !branchSelect.hasAttribute("disabled")) {
                     return;
                 }
-
+    
                 departmentSelect.setAttribute("disabled", true);
             }
-
+    
+            document.querySelector("form").addEventListener("submit", function(event) {
+                var dateValue = dateField.value;
+                var timeValue = timeField.value;
+    
+                if (dateValue && timeValue) {
+                    
+                    var datetimeValue = dateValue + ' ' + timeValue;
+                    
+                    dateTimeField.value = datetimeValue;
+                }
+            });
+    
             branchSelect.dispatchEvent(new Event("change"));
             idInput.addEventListener("input", handleIdInput);
             branchSelect.addEventListener("change", handleDepartment);
@@ -225,6 +241,7 @@
             handleDepartment();
         });
     </script>
+    
 </head>
 
 <body>
@@ -279,11 +296,24 @@
                     <option value="" disabled>Selectați departamentul</option>
                 </select>
             </div>
-            <div class="form-group">
+            <!--<div class="form-group">
                 <label for="datetime">Data și ora:</label>
                 <input type="datetime-local" id="datetime" name="datetime" value="{{ contest[4] }}" required {% if
                     completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
+            </div> -->
+            
+            <div class="form-group">
+                <label for="date">Data:</label>
+                <input type="date" id="date" name="date" value="{{ contest[4].strftime('%Y-%m-%d') }}" required {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
             </div>
+
+            <div class="form-group">
+                <label for="time">Ora:</label>
+                <input type="time" id="time" name="time" value="{{ contest[4].strftime('%H:%M') }}" required {% if completed %} disabled title="Acest concurs a fost deja completat" {% endif %}>
+            </div>
+
+            <input type="hidden" id="datetime" name="datetime">
+
             <div class="form-group">
                 <label for="participants">Concurenți:</label>
                 <div id="participants" class="scrollable-checkboxes">

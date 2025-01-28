@@ -162,6 +162,35 @@
 
 
         }
+        .contests-container {
+            width: 100%;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .contests-container ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+        }
+
+        .contests-container li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: left;
+        }
+
+        .contests-container input[type="checkbox"] {
+            margin-right: 10px;
+        }
     </style>
 </head>
 
@@ -198,6 +227,19 @@
             <select hidden id="user_type" name="user_type" placeholder="Tip user" required>
                 <option value="contestant">concurent</option>
             </select>
+
+            <label for="contests">Concursuri:</label>
+            <div class="contests-container">
+                <ul>
+                    {% for contest in contests %}
+                    <li>
+                        <input type="checkbox" name="contests" value="{{ contest[0] }}">
+                        {{ contest[1] }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
             <button type="submit" class="save-button">Salvare</button>
             <div class="back-link-container">
                 <a href="/view_contestants" class="back-link">Înapoi</a>

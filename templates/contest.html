@@ -233,7 +233,7 @@
             let time_left = (contest_start_time - server_current_time) / 1000;
 
             let container = document.querySelector(".contest-container");
-            container.innerHTML += `<p id="timer-info">Timp rămas: <span id="timer">${seconds_to_hms(time_left)}</span></p>`;
+            container.innerHTML += `<p id="timer-info">Concursul va începe peste: <span id="timer">${seconds_to_hms(time_left)}</span></p>`;
 
             let timer = document.querySelector("#timer");
             interval_id = setInterval(() => {

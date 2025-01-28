@@ -318,14 +318,17 @@
                             <button type="submit" class="btn-add">Ștergere</button>
                         </form>
                         {% elif user_type == 'contribuitor' %}
-                        <a href="/edit_branch/{{ branch['sucursala'] }}" class="btn-add">Editare</a>
+                       <!-- <a href="/edit_branch/{{ branch['sucursala'] }}" class="btn-add">Editare</a>
                         <form action="{{ url_for('delete_branch', sucursala=branch['sucursala']) }}" method="POST"
                             style="display:inline;"
                             onsubmit="return confirm('Sigur dorești să ștergi această sucursală?');">
-                            <button type="submit" class="btn-add">Ștergere</button>
+                        -->
+                            
+                            <a class="btn-add disabled">Editare</a>
+                            <a class="btn-add disabled">Șterge</a>
                         </form>
                         {% elif user_type == 'hr' %}
-                        <a href="/edit_branch/{{ branch['sucursala'] }}" class="btn-add">Editare</a>
+                        <a class="btn-add disabled">Editare</a>
                         <a class="btn-add disabled">Șterge</a>
                         {% endif %}
                     </td>

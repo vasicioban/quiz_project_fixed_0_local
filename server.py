@@ -248,36 +248,60 @@ def register():
 @app.route("/register_contestant", methods=["GET", "POST"])
 def register_contestant():
     username = session["username"]
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        user_type = request.form["user_type"]
-        hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
-        try:
-            connection = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
-            cursor = connection.cursor()
+    contests = []
+
+    try:
+        connection = psycopg2.connect(
+            user="postgres",
+            password="vasilica",
+            host="192.168.16.164",
+            port="5432",
+            database="postgres",
+        )
+        cursor = connection.cursor()
+
+        cursor.execute("SELECT id_concurs, titlu FROM concurs")
+        contests = cursor.fetchall()
+
+        if request.method == "POST":
+            username = request.form["username"]
+            password = request.form["password"]
+            user_type = request.form["user_type"]
+            selected_contests = set(map(int, request.form.getlist("contests")))
+
+            hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+
             cursor.execute(
                 "INSERT INTO concurenti (username, password, user_type) VALUES (%s, %s, %s)",
                 (username, hashed_password.decode("utf-8"), user_type),
             )
+
+            for contest_id in selected_contests:
+                cursor.execute(
+                    """
+                    INSERT INTO participanti_concurs (id_concurs, username)
+                    VALUES (%s, %s)
+                    ON CONFLICT DO NOTHING
+                    """,
+                    (contest_id, username),
+                )
+
             connection.commit()
             flash("Concurent înregistrat cu succes!", "success")
             return redirect(url_for("view_contestants"))
-        except (Exception, Error) as error:
-            print("Eroare la înregistrare:", error)
-            flash(f"A apărut o eroare la înregistrare:{error}", "danger")
-            return redirect(url_for("register_contestant"))
-        finally:
-            if connection:
-                cursor.close()
-                connection.close()
-    return render_template("register_contestant.html", username=username)
+
+    except (Exception, Error) as error:
+        if connection:
+            connection.rollback()
+        print("Eroare la înregistrare:", error)
+        flash(f"A apărut o eroare la înregistrare: {error}", "danger")
+        return redirect(url_for("register_contestant"))
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+
+    return render_template("register_contestant.html", username=username, contests=contests)
 
 
 @app.route("/view_contestants", methods=["GET", "POST"])
@@ -963,8 +987,9 @@ def create_contest():
                 """,
                 (id_set,),
             )
+            result = cursor.fetchone()
             # In case there are no versions, we only have the base set, so keep it
-            id_set = cursor.fetchone()[0] or id_set
+            id_set = result[0] if result is not None else id_set
 
             # Get random questions from the given set
             cursor.execute(
@@ -1738,8 +1763,9 @@ def edit_question_set(id_set):
                 """,
                 (id_set,),
             )
-            current_version = cursor.fetchone()[0] or None
-
+            result = cursor.fetchone()
+            current_version = result[0] if result else 0
+            
             # Insert a new version of the question set
             cursor.execute(
                 """
@@ -2019,23 +2045,13 @@ def edit_department(sucursala, departament):
             connection = connect_db()
             cursor = connection.cursor()
 
-            # Actualizare departament în tabela organizare
+            
             cursor.execute(
                 """
                 UPDATE organizare
                 SET sucursala = %s, departament = %s
                 WHERE sucursala = %s AND departament = %s
-            """,
-                (new_sucursala, new_department, sucursala, departament),
-            )
-
-            # Actualizare departament în tabela concurs
-            cursor.execute(
-                """
-                UPDATE concurs
-                SET sucursala = %s, departament = %s
-                WHERE sucursala = %s AND departament = %s
-            """,
+                """,
                 (new_sucursala, new_department, sucursala, departament),
             )
 
@@ -2082,6 +2098,7 @@ def edit_department(sucursala, departament):
             departament=departament,
             branches=branches,
         )
+
 
 
 @app.route("/view_department", methods=["GET"])
@@ -2251,7 +2268,7 @@ def edit_branch(sucursala):
                 """
                 UPDATE concurs
                 SET sucursala = %s
-                WHERE sucursala = %s
+                WHERE sucursala = %s AND id_concurs NOT IN (SELECT id_concurs FROM participanti_scoruri)
             """,
                 (new_sucursala, sucursala),
             )
