@@ -1559,7 +1559,11 @@ def edit_contest(old_id_concurs):
             completed = len(cursor.fetchall()) > 0
 
             cursor.execute(
-                "SELECT id_set FROM concursuri_seturi WHERE id_concurs = %s",
+                """
+                SELECT COALESCE(parent_id, cs.id_set) FROM concursuri_seturi cs
+                JOIN seturi_intrebari si ON cs.id_set = si.id_set
+                WHERE id_concurs = %s
+                """,
                 (old_id_concurs,),
             )
             selected_set_row = cursor.fetchone()

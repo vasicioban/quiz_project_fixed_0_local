@@ -216,6 +216,7 @@
                 departmentSelect.removeAttribute("disabled");
     
                 if (branchSelect.value && !branchSelect.hasAttribute("disabled")) {
+                    updateDepartments();
                     return;
                 }
     
@@ -237,8 +238,8 @@
             branchSelect.dispatchEvent(new Event("change"));
             idInput.addEventListener("input", handleIdInput);
             branchSelect.addEventListener("change", handleDepartment);
-            updateDepartments();
             handleDepartment();
+            updateDepartments();
         });
     </script>
     
