@@ -87,7 +87,12 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             box-sizing: border-box;
+            max-width: 100%; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
         }
+        
 
         .form-group input[type="checkbox"] {
             margin-right: 10px;
@@ -270,7 +275,7 @@
             <div class="form-group">
                 <label for="department">Departament:</label>
                 <select id="department" name="department" required {% if completed %} disabled
-                    title="Acest concurs a fost deja completat" {% endif %}>
+                    title="Acest concurs a fost deja completat" {% endif %} required style="width: 68%; ">
                     <option value="" disabled>Selectați departamentul</option>
                 </select>
             </div>

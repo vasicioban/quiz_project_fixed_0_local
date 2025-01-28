@@ -686,7 +686,7 @@ def view_contests():
         "departament": "c.departament",
         "data_ora": "c.data_ora",
         "participants": "participant_count",
-        "nume_set": "s.nume_set",  # Updated to reflect the new field
+        "nume_set": "s.nume_set",
     }
 
     if column not in column_mapping:
@@ -702,12 +702,12 @@ def view_contests():
         )
         cursor = connection.cursor()
 
-        # Update SQL query
+        
         query = """
             SELECT c.id_concurs, c.titlu, c.sucursala, c.departament, c.data_ora, 
                    ARRAY_AGG(p.username) AS participants, 
                    COUNT(p.username) AS participant_count, 
-                   s.nume_set
+                   COALESCE(s.nume_set, 'N/A') AS nume_set
             FROM concurs c
             LEFT JOIN participanti_concurs p ON c.id_concurs = p.id_concurs
             LEFT JOIN concursuri_seturi cs ON c.id_concurs = cs.id_concurs
@@ -725,11 +725,19 @@ def view_contests():
                     WHERE pc.id_concurs = c.id_concurs
                     AND LOWER(pc.username) LIKE %s
                 )
+                OR LOWER(COALESCE(s.nume_set, '')) LIKE %s
+                OR CAST(c.data_ora AS TEXT) LIKE %s
+                OR CAST(c.id_concurs AS TEXT) LIKE %s
             """
             search_param = f"%{search_query}%"
-            params = [search_param, search_param, search_param, search_param]
+            params = [
+                search_param, search_param, search_param, 
+                search_param, search_param, search_param, search_param
+            ]
         else:
             params = []
+
+
 
         query += f" GROUP BY c.id_concurs, s.nume_set ORDER BY {column_mapping[column]} {'ASC' if order == 'asc' else 'DESC'}"
         cursor.execute(query, tuple(params))
@@ -767,6 +775,7 @@ def view_contests():
         column=column,
         order=order,
     )
+
 
 
 @app.route("/create_question_set", methods=["GET", "POST"])
@@ -1621,10 +1630,11 @@ def view_question_sets():
                 SELECT id_set, nume_set 
                 FROM seturi_intrebari 
                 WHERE LOWER(nume_set) LIKE LOWER(%s) AND parent_id is null
+                OR CAST(id_set AS TEXT) LIKE %s
                 ORDER BY {column} {order.upper()}
             """
             print(f"Executing query with search term: {query}")
-            cursor.execute(query, (f"%{search_term}%",))
+            cursor.execute(query, (f"%{search_term}%", f"%{search_term}%"))
         else:
             query = f"""
                 SELECT id_set, nume_set 
