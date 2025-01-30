@@ -76,31 +76,20 @@ def authenticate(f):
 
 
 # Role-based access control decorator
-def authorize(
-    role,
-):  # Define a function to create a decorator for role-based access control
-    def wrapper(f):  # Define a nested function that takes a function 'f' as an argument
-        @wraps(
-            f
-        )  # Use the wraps decorator to preserve the metadata of the decorated function 'f'
-        def decorated(
-            *args, **kwargs
-        ):  # Define a nested function 'decorated' that will replace the original function 'f'
-            if (
-                session["user_type"] != role
-            ):  # Check if the user's role stored in the session doesn't match the required role
+def authorize(roles):
+    def wrapper(f): 
+        @wraps(f)
+        def decorated(*args, **kwargs): 
+            if session["user_type"] not in roles:  
                 return (
-                    jsonify({"message": "Permisiune refuzată!"}),
+                    jsonify({"message": "Permisiune refuzata!"}),
                     403,
-                )  # If the user's role doesn't match, return a JSON response with the message 'Permission denied!' and a 403 Forbidden status code
-            return f(
-                *args, **kwargs
-            )  # If the user's role matches, call the original function 'f' with the provided arguments and return its result
+                )  
+            return f(*args, **kwargs)  
 
-        return decorated  # Return the nested 'decorated' function
+        return decorated  
 
-    return wrapper  # Return the nested 'wrapper' function
-
+    return wrapper  
 
 # ----------------------------------------FUNCTIONS----------------------------------------
 
@@ -121,7 +110,7 @@ def check_credentials(username, password):
         if not user:
             # If user does not exist in 'users' table, check 'concurenti' table
             cursor.execute(
-                "SELECT username, password FROM concurenti WHERE username = %s",
+                "SELECT username, password,  user_type FROM concurenti WHERE username = %s",
                 (username,),
             )
             concurent = cursor.fetchone()
@@ -211,6 +200,8 @@ def login():
 
 
 @app.route("/register", methods=["GET", "POST"])
+@authenticate
+@authorize(['admin', 'hr'])
 def register():
     username = session["username"]
     if request.method == "POST":
@@ -246,6 +237,8 @@ def register():
 
 
 @app.route("/register_contestant", methods=["GET", "POST"])
+@authenticate
+@authorize(['admin', 'hr', 'contribuitor'])
 def register_contestant():
     username = session["username"]
     contests = []
@@ -306,6 +299,7 @@ def register_contestant():
 
 @app.route("/view_contestants", methods=["GET", "POST"])
 @authenticate
+@authorize(['admin', 'hr', 'contribuitor'])
 def view_contestants():
     username = session["username"]
     user_type = session["user_type"]
@@ -428,6 +422,8 @@ def view_contestants():
 
 
 @app.route("/edit_contestant/<int:id>", methods=["GET", "POST"])
+@authenticate
+@authorize(['admin', 'hr', 'contribuitor'])
 def edit_contestant(id):
     conn = None
     cursor = None
@@ -589,6 +585,8 @@ def edit_contestant(id):
 
 
 @app.route("/delete_contestant/<int:id>")
+@authenticate
+@authorize(['admin', 'hr', 'contribuitor'])
 def delete_contestant(id):
     try:
         connection = connect_db()
@@ -632,6 +630,7 @@ def delete_contestant(id):
 
 
 @app.route("/menu")
+@authenticate
 def menu():
     if "username" not in session:
         return redirect(url_for("login"))
@@ -694,7 +693,9 @@ def logout():
 
 
 @app.route("/view_contests", methods=["GET", "POST"])
+@authorize(['admin', 'hr', 'contribuitor'])
 @authenticate
+
 def view_contests():
     username = session["username"]
     user_type = session["user_type"]
@@ -804,6 +805,7 @@ def view_contests():
 
 @app.route("/create_question_set", methods=["GET", "POST"])
 @authenticate
+@authorize(['admin', 'hr', 'contribuitor'])
 def create_question_set():
     username = session["username"]
 
@@ -944,6 +946,8 @@ def get_contests():
 
 
 @app.route("/create_contest", methods=["GET", "POST"])
+@authenticate
+@authorize(['admin', 'hr', 'contribuitor'])
 def create_contest():
     username = session.get("username")
 
@@ -1206,6 +1210,8 @@ def create_contest():
 
 
 @app.route("/preview_quizzes/<id_concurs>", methods=["GET"])
+@authenticate
+@authorize(['admin', 'hr'])
 def preview_quizzes(id_concurs):
     username = session.get("username")
     try:
@@ -1287,6 +1293,8 @@ def preview_quizzes(id_concurs):
 
 
 @app.route("/edit_contest/<old_id_concurs>", methods=["GET", "POST"])
+@authenticate
+@authorize(['admin', 'hr', 'contribuitor'])
 def edit_contest(old_id_concurs):
     username = session.get("username")
 
@@ -1602,6 +1610,7 @@ def edit_contest(old_id_concurs):
 
 @app.route("/delete_contest/<id_concurs>", methods=["GET"])
 @authenticate
+@authorize(['admin', 'hr'])
 def delete_contest(id_concurs):
     try:
         connection = connect_db()
@@ -1635,6 +1644,7 @@ def delete_contest(id_concurs):
 
 
 @app.route("/view_question_sets", methods=["GET", "POST"])
+@authorize(['admin', 'hr', 'contribuitor'])
 @authenticate
 def view_question_sets():
     user_type = session["user_type"]
@@ -1700,6 +1710,7 @@ def view_question_sets():
 
 
 @app.route("/delete_question_set/<id_set>", methods=["GET"])
+@authorize(['admin'])
 def delete_question_set(id_set):
     if "username" not in session:
         return redirect(url_for("login"))
@@ -1733,6 +1744,7 @@ def delete_question_set(id_set):
 
 @app.route("/edit_question_set/<id_set>", methods=["GET", "POST"])
 @authenticate
+@authorize(['admin', 'hr', 'contribuitor'])
 def edit_question_set(id_set):
     username = session["username"]
 
@@ -1925,6 +1937,8 @@ def edit_question_set(id_set):
 
 
 @app.route("/create_branch", methods=["GET", "POST"])
+@authenticate
+@authorize(['admin', 'hr'])
 def create_branch():
     username = session.get("username")
 
@@ -1964,6 +1978,7 @@ def create_branch():
 
 @app.route("/create_department", methods=["GET", "POST"])
 @authenticate
+@authorize(['admin', 'hr', 'contribuitor'])
 def create_department():
     username = session.get("username")
 
@@ -2038,6 +2053,7 @@ def create_department():
 
 @app.route("/edit_department/<sucursala>/<departament>", methods=["GET", "POST"])
 @authenticate
+@authorize(['admin', 'hr', 'contribuitor'])
 def edit_department(sucursala, departament):
     username = session["username"]
 
@@ -2107,6 +2123,7 @@ def edit_department(sucursala, departament):
 
 @app.route("/view_department", methods=["GET"])
 @authenticate
+@authorize(['admin', 'hr', 'contribuitor'])
 def view_department():
     username = session["username"]
     user_type = session["user_type"]
@@ -2163,6 +2180,7 @@ def view_department():
 
 @app.route("/delete_department/<sucursala>/<departament>", methods=["GET", "POST"])
 @authenticate
+@authorize(['admin', 'hr'])
 def delete_department(sucursala, departament):
     try:
         connection = connect_db()
@@ -2194,6 +2212,7 @@ def delete_department(sucursala, departament):
 
 
 @app.route("/view_branches", methods=["GET"])
+@authorize(['admin', 'hr', 'contribuitor'])
 @authenticate
 def view_branches():
     username = session["username"]
@@ -2249,6 +2268,7 @@ def view_branches():
 
 @app.route("/edit_branch/<sucursala>", methods=["GET", "POST"])
 @authenticate
+@authorize(['admin', 'hr'])
 def edit_branch(sucursala):
     username = session["username"]
 
@@ -2310,6 +2330,7 @@ def edit_branch(sucursala):
 
 @app.route("/delete_branch/<sucursala>", methods=["POST"])
 @authenticate
+@authorize(['admin', 'hr'])
 def delete_branch(sucursala):
     try:
         connection = connect_db()
@@ -2459,6 +2480,8 @@ def view_test(id_set):
 
 
 @app.route("/solve_quiz/<int:id_chestionar>", methods=["GET", "POST"])
+@authenticate
+@authorize(['admin', 'concurent'])
 def solve_quiz(id_chestionar):
     if "username" not in session:
         return redirect(url_for("login"))
@@ -2787,6 +2810,8 @@ def solve_quiz(id_chestionar):
 
 
 @app.route("/contest/<int:id_concurs>", methods=["GET"])
+@authenticate
+@authorize(['admin', 'concurent'])
 def view_contest(id_concurs):
     if "username" not in session:
         return redirect(url_for("login"))
@@ -2866,6 +2891,8 @@ def view_contest(id_concurs):
     "/test_report/<int:id_concurs>/<int:id_set>/<username>/<int:total_score>",
     methods=["GET", "POST"],
 )
+@authenticate
+@authorize(['admin', 'hr', 'concurent'])
 def test_report(id_concurs, id_set, username, total_score):
     if "username" not in session:
         return redirect(url_for("login"))
@@ -3006,6 +3033,7 @@ def test_report(id_concurs, id_set, username, total_score):
 
 @app.route("/view_users", methods=["GET", "POST"])
 @authenticate
+@authorize(['admin', 'hr'])
 def view_users():
     username = session["username"]
     user_type = session["user_type"]
@@ -3075,6 +3103,7 @@ def view_users():
 
 @app.route("/edit_user/<int:id>", methods=["GET", "POST"])
 @authenticate
+@authorize(['admin', 'hr'])
 def edit_user(id):
     username = session.get("username")
     if request.method == "POST":
@@ -3160,6 +3189,8 @@ def edit_user(id):
 
 
 @app.route("/delete_user/<int:id>")
+@authenticate
+@authorize('admin')
 def delete_user(id):
     try:
         connection = connect_db()

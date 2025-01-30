@@ -264,11 +264,11 @@
                 </div>
             </form>
             {% if user_type == 'admin' %}
-            <a href="/create_contest" class="btn-add" style="margin-left: 10px;">Adăugare</a>
+            <a href="/create_contest" class="btn-add" style="margin-left: 10px;">Adăugare concurs</a>
             {% elif user_type == 'hr' %}
-            <a href="/create_contest" class="btn-add" style="margin-left: 10px;">Adăugare</a>
+            <a href="/create_contest" class="btn-add" style="margin-left: 10px;">Adăugare concurs</a>
             {% elif user_type == 'contribuitor' %}
-            <a href="/create_contest" class="btn-add" style="margin-left: 10px;">Adăugare</a>
+            <a href="/create_contest" class="btn-add" style="margin-left: 10px;">Adăugare concurs</a>
             {% endif %}
         </div>
         {% if has_contests %}
@@ -375,12 +375,12 @@
                         <a href="#"
                             onclick="return confirm('Sigur dorești să ștergi acest concurs?') ? window.location.href='/delete_contest/{{ contest.id_concurs }}' : false;"
                             class="btn-add">Ștergere</a>
-                        {% elif user_type == 'contribuitor' %}
+                        {% elif user_type == 'hr' %}
                         <a href="/edit_contest/{{ contest.id_concurs }}" class="btn-add">Editare</a>
                         <a href="#"
                             onclick="return confirm('Sigur dorești să ștergi acest concurs?') ? window.location.href='/delete_contest/{{ contest.id_concurs }}' : false;"
                             class="btn-add">Ștergere</a>
-                        {% elif user_type == 'hr' %}
+                        {% elif user_type == 'contribuitor' %}
                         <a href="/edit_contest/{{ contest.id_concurs }}" class="btn-add">Editare</a>
                         <a class="btn-add disabled">Șterge</a>
                         {% endif %}

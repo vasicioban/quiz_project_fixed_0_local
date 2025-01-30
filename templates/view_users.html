@@ -342,18 +342,15 @@
                     <td>{{ user.user_type }}</td>
                     <td>
 
-                        {% if user_type == 'admin' or (user_type == 'contribuitor' and user.user_type != 'admin') %}
-                        <a href="/edit_user/{{ user.id }}" class="add-button">Editare</a>
-                        {% else %}
-                        <a class="add-button disabled">Editare</a>
-                        {% endif %}
-
                         {% if user_type == 'admin' %}
+                        <a href="/edit_user/{{ user.id }}" class="add-button">Editare</a>
                         <a href="#"
                             onclick="return confirm('Sigur dorești să ștergi această înregistrare?') ? window.location.href='/delete_user/{{ user.id }}' : false;"
                             class="add-button">Ștergere</a>
-                        {% elif user_type == 'contribuitor' %}
-                        <a class="add-button disabled">Șterge</a>
+                         {% elif user_type == 'hr' %}
+                         <a href="/edit_user/{{ user.id }}" class="add-button">Editare</a>
+                         <a class="add-button disabled">Șterge</a>
+                        
                         {% endif %}
 
 

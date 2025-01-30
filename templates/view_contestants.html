@@ -318,9 +318,7 @@
                 </div>
                 <a href="/register_contestant" class="add-button">Adăugare concurent</a>
             </form>
-            {% if user_type == 'hr' %}
-            <a href="/register_contestant" class="btn-add" style="margin-left: 10px;">Adăugare</a>
-            {% endif %}
+            
         </div>
 
         {% if has_contestants %}
@@ -402,7 +400,7 @@
                             onclick="return confirm('Sigur dorești să ștergi această înregistrare?') ? window.location.href='/delete_contestant/{{ contestant.id }}' : false;"
                             class="btn-add">Ștergere</a>
                         {% elif user_type == 'contribuitor' %}
-                        <a class="btn-add disabled">Editare</a>
+                        <a href="/edit_contestant/{{ contestant.id }}" class="btn-add">Editare</a>
                         <a class="btn-add disabled">Șterge</a>
                         {% elif user_type == 'hr' %}
                         <a href="/edit_contestant/{{ contestant.id }}" class="btn-add">Editare</a>
@@ -435,4 +433,4 @@
     document.querySelectorAll("tr a").forEach((e) => e.addEventListener("click", (event) => event.stopPropagation()))
 </script>
 
-</html>
+</html>

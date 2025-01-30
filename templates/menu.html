@@ -83,8 +83,8 @@
             cursor: pointer;
         }
 
-        .menu-container li:hover {
-            background-color: #0056b3;
+        .menu-container li a:hover {
+            background-color: #0056b3 !important;
         }
 
         .menu-container a {
@@ -97,6 +97,8 @@
             display: flex;
             align-items: center;
         }
+        
+
     </style>
 </head>
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -172,21 +174,24 @@
             <li><a href="{{ url_for('view_contestants') }}">Concurenți</a></li>
             {% endif %}
             {% if user_type == 'contribuitor' %}
-            <li><a href="{{ url_for('view_users') }}">Utilizatori</a></li>
+            
             <li><a href="{{ url_for('view_branches') }}">Sucursale</a></li>
             <li><a href="{{ url_for('view_department') }}">Departamente</a></li>
             <li><a href="{{ url_for('view_contests') }}">Concursuri</a></li>
             <li><a href="{{ url_for('view_question_sets') }}">Seturi Intrebari</a></li>
             <li><a href="{{ url_for('view_contestants') }}">Concurenți</a></li>
             {% endif %}
+
             {% if user_type == 'concurent' %}
             {% if assigned_contests %}
             {% for contest in assigned_contests %}
             <li><a href="{{ url_for('view_contest', id_concurs=contest[0]) }}">{{ contest[1] }}</a></li>
             {% endfor %}
+
             {% else %}
             <li>Nu aveți asignat niciun concurs în acest moment.</li>
             {% endif %}
+
             {% endif %}
         </ul>
     </div>
