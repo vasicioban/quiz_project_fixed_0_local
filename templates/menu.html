@@ -14,7 +14,7 @@
         }
 
         .header {
-            background-color: #007bff;
+            background: linear-gradient(to right, #007bff, #0056b3);
             color: #fff;
             padding: 10px;
             display: flex;
@@ -29,28 +29,27 @@
         }
 
         .user-info {
-            display: flex;
-            align-items: center;
-        }
+    display: flex;
+    align-items: center;
+}
 
-        .user-info span {
-            margin-right: 10px;
-            color: #fff;
-        }
+.user-info span {
+    margin-right: 10px;
+    color: white;
+}
 
-        .user-info button {
-            color: #fff;
-            border: none;
-            text-decoration: none;
-            padding: 5px 10px;
-            background-color: #0056b3;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
+.user-info a {
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    background-color: #0056b3;
+    border-radius: 6px;
+    transition: background-color 0.3s;
+}
 
-        .user-info button:hover {
-            background-color: #004080;
-        }
+.user-info a:hover {
+    background-color: #002a66;
+}
 
         .logo-title-container a {
             color: white;
@@ -75,7 +74,7 @@
 
         .menu-container li a {
             padding: 10px;
-            background-color: #007bff;
+            background: linear-gradient(to right, #4fa1fe, #4c00fe);
             color: #fff;
             margin-bottom: 10px;
             text-align: center;
@@ -84,7 +83,8 @@
         }
 
         .menu-container li a:hover {
-            background-color: #0056b3 !important;
+            background: linear-gradient(to right, #4c00fe, #4fa1fe );
+            transform: scale(1.02); 
         }
 
         .menu-container a {
@@ -152,7 +152,7 @@
         </div>
         <div class="user-info">
             <span>Bine ai venit, {{ username }}!</span>
-            <button onclick="logout()">Logout</button>
+            <a onclick="logout()" style="color: #fff; text-decoration: none;">Delogare</a>
         </div>
     </div>
 

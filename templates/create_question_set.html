@@ -411,7 +411,7 @@
                     option0.selected = true;
                     answerCountSelect.add(option0);
 
-                    for (let j = 3; j <= 6; j++) {
+                    for (let j = 6; j <= 12; j++) {
                         const option = document.createElement('option');
                         option.value = j;
                         option.text = j;
@@ -438,6 +438,30 @@
                     }
                 });
             });
+
+            function logout() {
+            stop_recording()
+                .then(() => {
+                    // setTimeout(() => {
+                    //     console.log("Redirecting...");
+                    // }, 1000);
+                    window.location.href = "{{ url_for('logout') }}";
+                })
+                .catch(error => {
+                    console.error("Error during logout or stop recording: ", error);
+                })
+        }
+
+        function stop_recording() {
+            return fetch("http://localhost:5055/stop")  // Return the fetch promise
+                .then(response => {
+                    if (!response.ok) throw new Error("Recording stop failed!");
+                    console.log("Recording stopped.");
+                })
+                .catch(error => {
+                    console.error("Error in stop_recording:", error);
+                });
+        }
         </script>
     </head>
 
@@ -458,7 +482,7 @@
         </div>
         <div class="user-info">
             <span>Bine ai venit, {{ username }}!</span>
-            <a href="/logout">Delogare</a>
+            <a onclick="logout()" style="color: #fff; text-decoration: none;">Delogare</a>
         </div>
     </div>
 

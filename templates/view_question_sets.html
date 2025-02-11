@@ -29,7 +29,7 @@
         </div>
         <div class="user-info">
             <span>Bine ai venit, {{ username }}!</span>
-            <a href="/logout">Delogare</a>
+            <a onclick="logout()" style="color: #fff; text-decoration: none;">Delogare</a>
         </div>
     </div>
 
@@ -45,7 +45,7 @@
                     </button>
                 </div>
             </form>
-            <a href="/create_question_set" class="btn-add" style="margin-left: 10px;">Adăugare</a>
+            <a href="/create_question_set" class="btn-add" style="margin-left: 10px;">Adăugare set</a>
         </div>
         {% if has_question_sets %}
         <table>

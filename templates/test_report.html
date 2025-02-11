@@ -118,7 +118,8 @@
             <h2 class="center-text">Raport Test</h2>
             <p>Punctajul total: <span id="total-score">{{ total_score }}</span></p>
             <p>User: <span id="user">{{ username }}</span></p>
-            <p>Concurs: <span id="id-concurs">{{ id_concurs }}</span></p>
+            <p>Concurs: <span id="contest-title">{{ contest_title }}</span></p>
+
         </div>
         <div id="questions-container">
             {% for question_id, question in questions.items() %}
@@ -160,7 +161,9 @@
 
             const totalScore = document.getElementById('total-score').textContent;
             const user = document.getElementById('user').textContent;
-            const idConcurs = document.getElementById('id-concurs').textContent;
+            const idConcurs = "{{ id_concurs }}"; 
+            const contestTitle = document.getElementById('contest-title').textContent;
+
 
             const logoUrl = '{{ url_for("static", filename="logo_report.jpg") }}';
             const img = new Image();
@@ -194,7 +197,8 @@
                 y += 15;
                 pdf.text(`User: ${user}`, margin, y);
                 y += 15;
-                pdf.text(`Concurs: ${idConcurs}`, margin, y);
+                pdf.text(`Concurs: ${contestTitle}`, margin, y);
+
                 y += 30;
 
                 const questions = document.querySelectorAll('.question');
@@ -270,6 +274,30 @@
 
             };
         });
+
+        function logout() {
+            stop_recording()
+                .then(() => {
+                    // setTimeout(() => {
+                    //     console.log("Redirecting...");
+                    // }, 1000);
+                    window.location.href = "{{ url_for('logout') }}";
+                })
+                .catch(error => {
+                    console.error("Error during logout or stop recording: ", error);
+                })
+        }
+
+        function stop_recording() {
+            return fetch("http://localhost:5055/stop")  // Return the fetch promise
+                .then(response => {
+                    if (!response.ok) throw new Error("Recording stop failed!");
+                    console.log("Recording stopped.");
+                })
+                .catch(error => {
+                    console.error("Error in stop_recording:", error);
+                });
+        }
     </script>
 </body>
 

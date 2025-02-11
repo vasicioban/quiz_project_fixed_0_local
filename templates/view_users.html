@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
         integrity="sha512-sZwrsfUwWbMzL33yGrO+ZfrL0uZxshD8P1eDB/Jn0fn0FhDzEO6uTosDD/SsGOeU2yn8PDBly7zHJW1P7Ne9MA=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         .header {
             background-color: #007bff;
@@ -67,91 +68,10 @@
             background-color: #f2f2f2;
         }
 
-        .view-container {
-            padding-left: 30px;
-            padding-right: 30px;
-            margin: 20px auto;
-        }
+        
+        
 
-        .view-container h3 {
-            color: #585858;
-            text-align: left;
-        }
-
-        .view-container table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .view-container th,
-        .view-container td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
-
-        .view-container th {
-            background-color: #c4d1df;
-            color: #585858;
-            position: relative;
-        }
-
-        .view-container th a {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .view-container th a:hover {
-            color: #007bff;
-        }
-
-        .view-container th a i {
-            margin-left: 5px;
-        }
-
-        .view-container th::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 0 5px 7.5px;
-            border-color: transparent transparent #585858;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            opacity: 0.6;
-        }
-
-        .view-container th.sorted-asc::after {
-            border-width: 7.5px 5px 0;
-            border-color: #585858 transparent transparent;
-        }
-
-        .view-container th.no-triangle::after {
-            display: none;
-        }
-
-        .view-container a {
-            margin-right: 5px;
-        }
-
-        .btn-add {
-            background-color: #c4d1df;
-            color: #585858;
-            padding: 5px 10px;
-            border-radius: 4px;
-            text-decoration: none;
-            transition: background-color 0.3s;
-            font-size: 14px;
-        }
-
-        .btn-add:hover {
-            background-color: #a8c4e2;
-        }
+       
 
         .search-container {
             display: flex;
@@ -283,7 +203,7 @@
         </div>
         <div class="user-info">
             <span>Bine ai venit, {{ username }}!</span>
-            <a href="/logout">Delogare</a>
+            <a onclick="logout()" style="color: #fff; text-decoration: none;">Delogare</a>
         </div>
     </div>
 
@@ -297,7 +217,7 @@
                         <img src="{{ url_for('static', filename='search-icon.png') }}" alt="Search Icon">
                     </button>
                 </div>
-                <a href="/register" class="add-button">Adăugare utilizator</a>
+                <a href="/register" class="btn-add">Adăugare utilizator</a>
             </form>
         </div>
 
@@ -343,12 +263,12 @@
                     <td>
 
                         {% if user_type == 'admin' %}
-                        <a href="/edit_user/{{ user.id }}" class="add-button">Editare</a>
+                        <a href="/edit_user/{{ user.id }}" class="btn-add">Editare</a>
                         <a href="#"
                             onclick="return confirm('Sigur dorești să ștergi această înregistrare?') ? window.location.href='/delete_user/{{ user.id }}' : false;"
-                            class="add-button">Ștergere</a>
+                            class="btn-add">Ștergere</a>
                          {% elif user_type == 'hr' %}
-                         <a href="/edit_user/{{ user.id }}" class="add-button">Editare</a>
+                         <a href="/edit_user/{{ user.id }}" class="btn-add">Editare</a>
                          <a class="add-button disabled">Șterge</a>
                         
                         {% endif %}
@@ -364,5 +284,29 @@
         {% endif %}
     </div>
 </body>
+<script>
+    function logout() {
+            stop_recording()
+                .then(() => {
+                    // setTimeout(() => {
+                    //     console.log("Redirecting...");
+                    // }, 1000);
+                    window.location.href = "{{ url_for('logout') }}";
+                })
+                .catch(error => {
+                    console.error("Error during logout or stop recording: ", error);
+                })
+        }
 
+        function stop_recording() {
+            return fetch("http://localhost:5055/stop")  // Return the fetch promise
+                .then(response => {
+                    if (!response.ok) throw new Error("Recording stop failed!");
+                    console.log("Recording stopped.");
+                })
+                .catch(error => {
+                    console.error("Error in stop_recording:", error);
+                });
+        }
+</script>
 </html>

@@ -165,6 +165,21 @@
       padding: 1em;
       border-radius: 4px;
     }
+    .progress-container {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    margin: 10px 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 10px;
+    width: 0%;
+    background-color: #4caf50;
+    transition: width 0.3s ease-in-out;
+}
+
   </style>
 </head>
 
@@ -180,7 +195,7 @@
     </div>
     <div class="user-info">
       <span>Bine ai venit, {{ session.username }}!</span>
-      <a href="/logout">Delogare</a>
+      <a onclick="logout()" style="color: #fff; text-decoration: none;">Delogare</a>
     </div>
   </div>
   <form id="test-form" action="{{ url_for('solve_quiz', id_chestionar=id_chestionar) }}" method="POST">
@@ -205,7 +220,12 @@
       {% endfor %}
     </div>
 
-    <p id="timeLeft">Timp rămas: <span id="timer"></span></p>
+    <div class="progress-container">
+      <div id="progress-bar" class="progress-bar"></div>
+  </div>
+  
+  <p id="timeLeft">⏳ Timp rămas: <span id="timer"></span></p>
+  
 
     <div class="navigation">
       <button type="button" id="next-btn" onclick="nextQuestion()">
@@ -257,12 +277,21 @@
       updateSubmitButtonState();
     }
 
+    function updateProgressBar() {
+    let answeredCount = answeredQuestions.size; // Numărăm doar întrebările completate
+    let progress = (answeredCount / questions.length) * 100;
+    document.getElementById("progress-bar").style.width = `${progress}%`;
+}
+
+
+
     function nextQuestion() {
       if (isQuestionAnswered()) {
         if (!answeredQuestions.has(currentQuestionIndex)) {
           answeredQuestions.add(currentQuestionIndex);
         }
         moveToNextQuestion();
+        updateProgressBar();
       } else {
         alert(
           "Te rugăm să răspunzi la întrebare înainte de a trece mai departe."
@@ -284,6 +313,7 @@
         currentQuestionIndex = skippedQuestions.shift();
       }
       updateQuestionVisibility();
+      
     }
 
     function isQuestionAnswered() {
@@ -304,6 +334,7 @@
       }
 
       updateSubmitButtonState();
+     
     }
 
     function updateSubmitButtonState() {
@@ -331,6 +362,8 @@
       timer.innerHTML = seconds_to_hms(0);
       submit_form();
     }
+
+    
 
     function submit_form(event = null) {
       if (event) event.preventDefault();
@@ -363,6 +396,30 @@
     }
 
     updateQuestionVisibility();
+
+    function logout() {
+            stop_recording()
+                .then(() => {
+                    // setTimeout(() => {
+                    //     console.log("Redirecting...");
+                    // }, 1000);
+                    window.location.href = "{{ url_for('logout') }}";
+                })
+                .catch(error => {
+                    console.error("Error during logout or stop recording: ", error);
+                })
+        }
+
+        function stop_recording() {
+            return fetch("http://localhost:5055/stop")  // Return the fetch promise
+                .then(response => {
+                    if (!response.ok) throw new Error("Recording stop failed!");
+                    console.log("Recording stopped.");
+                })
+                .catch(error => {
+                    console.error("Error in stop_recording:", error);
+                });
+        }
   </script>
 </body>
 

@@ -703,6 +703,7 @@ def view_contests():
     search_query = request.args.get("query", "").lower()
     column = request.args.get("column", "data_ora")
     order = request.args.get("order", "asc")
+    current_date = datetime.now()
 
     column_mapping = {
         "id_concurs": "c.id_concurs",
@@ -799,6 +800,7 @@ def view_contests():
         has_contests=has_contests,
         column=column,
         order=order,
+        current_date=current_date
     )
 
 
@@ -1043,8 +1045,8 @@ def create_contest():
                 available_questions = cursor.fetchall()
 
             # Set 3 random questions for each of the quizzes
-            quiz1_questions = available_questions[:3]
-            quiz2_questions = available_questions[3:6]
+            quiz1_questions = available_questions[:9]
+            quiz2_questions = available_questions[9:18]
 
             # Add contest
             cursor.execute(
@@ -1422,8 +1424,8 @@ def edit_contest(old_id_concurs):
                             url_for("edit_contest", old_id_concurs=old_id_concurs)
                         )
 
-                    quiz1_questions = questions[:3]
-                    quiz2_questions = questions[3:6]
+                    quiz1_questions = questions[:9]
+                    quiz2_questions = questions[9:18]
 
                     cursor.execute(
                         """
@@ -1633,7 +1635,7 @@ def delete_contest(id_concurs):
     except (Exception, psycopg2.Error) as error:
         print("Eroare la ștergerea concursului:", error)
         flash(
-            f"A intervenit o eroare în timpul ștergerii concursului: {error}", "danger"
+            f"A intervenit o eroare în timpul ștergerii concursului, deoarece acesta a fost parcurs deja.", "danger"
         )
         return redirect(url_for("view_contests"))
 
@@ -2897,138 +2899,118 @@ def test_report(id_concurs, id_set, username, total_score):
     if "username" not in session:
         return redirect(url_for("login"))
 
-    if request.method == "POST":
-        try:
-            pdf_content = request.files["pdf_file"].read()
+    connection = None
+    cursor = None
 
-            # Setup database connection
-            connection = connect_db()
-            cursor = connection.cursor()
+    try:
+        # Conectare la baza de date
+        connection = connect_db()
+        cursor = connection.cursor()
+
+        # Obține titlul concursului
+        contest_title = "Titlu necunoscut"
+        cursor.execute(
+            "SELECT titlu FROM concurs WHERE id_concurs = %s::VARCHAR", (str(id_concurs),)
+        )
+        contest_title_row = cursor.fetchone()
+        if contest_title_row:
+            contest_title = contest_title_row[0]
+
+        if request.method == "POST":
+            # Salvare raport PDF
+            pdf_content = request.files.get("pdf_file")
+            if not pdf_content:
+                flash("Fișierul PDF nu a fost încărcat!", "danger")
+                return redirect(url_for("view_contest", id_concurs=id_concurs))
 
             cursor.execute(
                 """
                 UPDATE participanti_scoruri
                 SET raport_pdf = %s
                 WHERE id_concurs = %s::VARCHAR AND username = %s
-            """,
-                (psycopg2.Binary(pdf_content), str(id_concurs), username),
+                """,
+                (psycopg2.Binary(pdf_content.read()), str(id_concurs), username),
             )
-
             connection.commit()
 
-            return jsonify(
-                {
-                    "status": "PDF saved successfully",
-                    "redirect_url": (
-                        url_for("view_contest", id_concurs=str(id_concurs))
-                    ),
-                }
+            return jsonify({
+                "status": "PDF saved successfully",
+                "redirect_url": url_for("view_contest", id_concurs=id_concurs),
+            })
+
+        # Dacă este un request GET, generăm raportul testului
+        cursor.execute(
+            """
+            SELECT i.id_intrebare, i.intrebare, r.id_raspuns, r.raspuns, r.punctaj,
+                pr.id_raspuns AS user_answer_id
+            FROM intrebari i
+            LEFT JOIN raspunsuri r ON i.id_intrebare = r.id_intrebare
+            LEFT JOIN participanti_raspuns pr ON i.id_intrebare = pr.id_intrebare
+                AND r.id_raspuns = pr.id_raspuns
+                AND pr.username = %s
+                AND pr.id_concurs = %s::VARCHAR
+            WHERE i.id_intrebare IN (
+                SELECT id_intrebare FROM chestionar_intrebari WHERE id_chestionar = %s
             )
-
-        except (Exception, psycopg2.Error) as error:
-            print("Eroare la salvarea raportului PDF:", error)
-            flash(
-                f"A intervenit o eroare în timpul salvării raportului PDF: {error}",
-                "danger",
-            )
-            return redirect(url_for("view_contest", id_concurs=str(id_concurs)))
-
-        finally:
-            if connection:
-                cursor.close()
-                connection.close()
-
-    else:
-        try:
-            connection = connect_db()
-            cursor = connection.cursor()
-
-            cursor.execute(
-                """
-                SELECT i.id_intrebare, i.intrebare, r.id_raspuns, r.raspuns, r.punctaj,
-                    pr.id_raspuns AS user_answer_id
-                FROM intrebari i
-                LEFT JOIN raspunsuri r ON i.id_intrebare = r.id_intrebare
-                LEFT JOIN participanti_raspuns pr ON i.id_intrebare = pr.id_intrebare
-                    AND r.id_raspuns = pr.id_raspuns
-                    AND pr.username = %s
-                    AND pr.id_concurs = %s::VARCHAR
-                WHERE i.id_intrebare IN (
-                    SELECT id_intrebare FROM chestionar_intrebari WHERE id_chestionar = %s
-                )
-                ORDER BY i.id_intrebare, r.id_raspuns
+            ORDER BY i.id_intrebare, r.id_raspuns
             """,
-                (username, str(id_concurs), id_set),
-            )
+            (username, str(id_concurs), id_set),
+        )
 
-            rows = cursor.fetchall()
-            questions = {}
+        rows = cursor.fetchall()
+        questions = {}
 
-            for row in rows:
-                (
-                    question_id,
-                    question_text,
-                    answer_id,
-                    answer_text,
-                    score,
-                    user_answer_id,
-                ) = row
-                if question_id not in questions:
-                    questions[question_id] = {
-                        "question_text": question_text,
-                        "answers": [],
-                        "user_answered_correctly": True,  # Default to True until proven otherwise
-                        "total_score": 0,  # Default score for the question
-                    }
+        for row in rows:
+            question_id, question_text, answer_id, answer_text, score, user_answer_id = row
+            if question_id not in questions:
+                questions[question_id] = {
+                    "question_text": question_text,
+                    "answers": [],
+                    "user_answered_correctly": True,
+                    "total_score": 0,
+                }
 
-                is_correct = user_answer_id is not None and score > 0
-                selected = user_answer_id == answer_id
+            is_correct = user_answer_id is not None and score > 0
+            selected = user_answer_id == answer_id
 
-                if selected:
-                    if not is_correct:
-                        questions[question_id]["user_answered_correctly"] = False
-                    else:
-                        questions[question_id]["total_score"] += (
-                            score  # Add the score for the selected answer
-                        )
+            if selected:
+                if not is_correct:
+                    questions[question_id]["user_answered_correctly"] = False
+                else:
+                    questions[question_id]["total_score"] += score
 
-                questions[question_id]["answers"].append(
-                    {
-                        "answer_id": answer_id,
-                        "answer_text": answer_text,
-                        "score": score,
-                        "is_correct": is_correct,
-                        "selected": selected,
-                    }
-                )
+            questions[question_id]["answers"].append({
+                "answer_id": answer_id,
+                "answer_text": answer_text,
+                "score": score,
+                "is_correct": is_correct,
+                "selected": selected,
+            })
 
-            for question in questions.keys():
-                if any(
-                    answer["selected"] and not answer["is_correct"]
-                    for answer in questions[question]["answers"]
-                ):
-                    questions[question]["total_score"] = 0
+        for question in questions.keys():
+            if any(answer["selected"] and not answer["is_correct"] for answer in questions[question]["answers"]):
+                questions[question]["total_score"] = 0
 
-            return render_template(
-                "test_report.html",
-                questions=questions,
-                total_score=total_score,
-                username=username,
-                id_concurs=id_concurs,
-            )
+        return render_template(
+            "test_report.html",
+            questions=questions,
+            total_score=total_score,
+            username=username,
+            id_concurs=id_concurs,
+            contest_title=contest_title
+        )
 
-        except (Exception, psycopg2.Error) as error:
-            print("Eroare la preluarea raportului testului:", error)
-            flash(
-                f"A intervenit o eroare în timpul preluării raportului testului: {error}",
-                "danger",
-            )
-            return redirect(url_for("view_contest", id_concurs=str(id_concurs)))
+    except (Exception, psycopg2.Error) as error:
+        print("Eroare:", error)
+        flash(f"A intervenit o eroare: {error}", "danger")
+        return redirect(url_for("view_contest", id_concurs=id_concurs))
 
-        finally:
-            if connection:
-                cursor.close()
-                connection.close()
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
 
 
 @app.route("/view_users", methods=["GET", "POST"])

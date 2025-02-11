@@ -166,6 +166,39 @@
             background-color: gray;
             box-shadow: none;
         }
+        .contest-message {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 20px auto;
+    padding: 15px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 500px;
+}
+
+.hidden {
+    display: none;
+}
+
+.ended {
+    background: rgba(255, 87, 34, 0.1);
+    color: #d32f2f;
+    padding: 10px;
+    border: 2px solid #d32f2f;
+    border-radius: 8px;
+    display: inline-block;
+}
+
+.waiting {
+    background: rgba(33, 150, 243, 0.1);
+    color: #1976d2;
+    padding: 10px;
+    border: 2px solid #1976d2;
+    border-radius: 8px;
+    display: inline-block;
+}
+
     </style>
 </head>
 
@@ -188,7 +221,7 @@
         </div>
         <div class="user-info">
             <span>Bine ai venit, {{ session.username }}!</span>
-            <a href="/logout">Logout</a>
+            <a onclick="logout()" style="color: #fff; text-decoration: none;">Delogare</a>
         </div>
     </div>
 
@@ -215,39 +248,39 @@
         <p>Nu există un chestionar de rezervă disponibil pentru acest concurs.</p>
         {% endif %}
     </div>
+    <div id="contest-message" class="contest-message hidden"></div>
+
     <script>
         const contest_start_time = Date.parse("{{ contest_start_time }}");
         const server_current_time = Date.parse("{{ current_time }}");
 
         function check_start_time() {
-            if (server_current_time - contest_start_time > 120 * 60 * 1000) {
-                let container = document.querySelector(".contest-container");
-                container.innerHTML += `<p id="timer-info">Perioada concursului s-a încheiat</p>`;
-                return;
-            } else if (Math.ceil(server_current_time - contest_start_time) >= 0) {
-                enable_buttons();
-                return;
-            }
+        let contestMessage = document.querySelector("#contest-message");
 
-            // test cannot start yet
-            let time_left = (contest_start_time - server_current_time) / 1000;
-
-            let container = document.querySelector(".contest-container");
-            container.innerHTML += `<p id="timer-info">Concursul va începe peste: <span id="timer">${seconds_to_hms(time_left)}</span></p>`;
-
-            let timer = document.querySelector("#timer");
-            interval_id = setInterval(() => {
-                if (time_left <= 0) {
-                    clearInterval(interval_id);
-                    interval_id = null;
-                    container.removeChild(document.querySelector("#timer-info"));
-                    enable_buttons();
-                }
-
-                time_left -= 1;
-                timer.innerText = seconds_to_hms(time_left);
-            }, 1000);
+        if (server_current_time - contest_start_time > 120 * 60 * 1000) {
+            contestMessage.innerHTML = `<span class="ended">⏳ Perioada concursului s-a încheiat.</span>`;
+            contestMessage.classList.remove("hidden");
+            return;
+        } else if (Math.ceil(server_current_time - contest_start_time) >= 0) {
+            enable_buttons();
+            return;
         }
+
+        let time_left = (contest_start_time - server_current_time) / 1000;
+        contestMessage.innerHTML = `<span class="waiting">🕒 Concursul va începe peste: <strong id="timer">${seconds_to_hms(time_left)}</strong></span>`;
+        contestMessage.classList.remove("hidden");
+
+        let timer = document.querySelector("#timer");
+        let interval_id = setInterval(() => {
+            if (time_left <= 0) {
+                clearInterval(interval_id);
+                contestMessage.innerHTML = "";
+                enable_buttons();
+            }
+            time_left -= 1;
+            timer.innerText = seconds_to_hms(time_left);
+        }, 1000);
+    }
 
         function seconds_to_hms(seconds) {
             const HOURS_PER_DAY = 24;
@@ -276,6 +309,32 @@
             }
         }
         document.body.onload = check_start_time();
+
+        
+        function logout() {
+            stop_recording()
+                .then(() => {
+                    // setTimeout(() => {
+                    //     console.log("Redirecting...");
+                    // }, 1000);
+                    window.location.href = "{{ url_for('logout') }}";
+                })
+                .catch(error => {
+                    console.error("Error during logout or stop recording: ", error);
+                })
+        }
+
+        function stop_recording() {
+            return fetch("http://localhost:5055/stop")  // Return the fetch promise
+                .then(response => {
+                    if (!response.ok) throw new Error("Recording stop failed!");
+                    console.log("Recording stopped.");
+                })
+                .catch(error => {
+                    console.error("Error in stop_recording:", error);
+                });
+        }
+   
     </script>
 </body>
 

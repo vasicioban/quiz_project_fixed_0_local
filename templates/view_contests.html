@@ -74,7 +74,7 @@
         }
 
         .view-contests-container h3 {
-            color: #585858;
+            color: #f13434;
             text-align: left;
         }
 
@@ -93,7 +93,7 @@
 
         .view-contests-container th {
             background-color: #c4d1df;
-            color: #585858;
+            color: #e71f1f;
             position: relative;
         }
 
@@ -128,7 +128,7 @@
 
         .view-contests-container th.sorted-asc::after {
             border-width: 7.5px 5px 0;
-            border-color: #585858 transparent transparent;
+            border-color: #bb2e2e transparent transparent;
         }
 
         .view-contests-container a {
@@ -136,25 +136,36 @@
         }
 
         .btn-add {
-            background-color: #c4d1df;
-            color: #585858;
-            padding: 5px 10px;
-            border-radius: 4px;
-            text-decoration: none;
-            transition: background-color 0.3s;
-            font-size: 14px;
-        }
+    background: linear-gradient(to right,#4fa1fe, #4c00fe);
+    color: white;
+    padding: 10px 10px;
+    border-radius: 15px; /* Margini rotunjite */
+    text-decoration: none;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    border: none;
+    display: inline-block;
+    min-width: 60px;
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
 
-        .btn-add:hover {
-            background-color: #a8c4e2;
-        }
+.btn-add:hover {
+    background: linear-gradient(to right, #4c00fe, #4fa1fe); 
+    transform: scale(1.05); /* Efect de mărire */
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+}
 
-        .btn-add.disabled {
-            background-color: #e0e0e0;
-            color: #a0a0a0;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
+.btn-add.disabled {
+    background: linear-gradient(to right, #d3d3d3, #a0a0a0); 
+    color: #808080;
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+}
+
 
         .search-container {
             display: flex;
@@ -229,6 +240,11 @@
         .alert-danger {
             background-color: #f1b1b9;
         }
+        .past-contest {
+    
+    color: #808080; /* Text gri */
+}
+
     </style>
 </head>
 
@@ -249,7 +265,7 @@
         </div>
         <div class="user-info">
             <span>Bine ai venit, {{ username }}!</span>
-            <a href="/logout">Delogare</a>
+            <a onclick="logout()" style="color: #fff; text-decoration: none;">Delogare</a>
         </div>
     </div>
     <div class="view-container">
@@ -343,7 +359,10 @@
             </thead>
             <tbody>
                 {% for contest in contests %}
-                <tr>
+                {% set contest_date = contest.data_ora %}
+                
+                <!-- Compară data concursului cu data curentă -->
+                <tr class="{% if contest_date < current_date %}past-contest{% endif %}">
                     <td>{{ contest.id_concurs }}</td>
                     <td>{{ contest.titlu }}</td>
                     <td>{{ contest.sucursala }}</td>
@@ -351,13 +370,11 @@
                     <td>{{ contest.data_ora.strftime('%Y-%m-%d %H:%M') }}</td>
                     <td>
                         {% if contest.nume_set %}
-                        <a href="{{ url_for('preview_quizzes', id_concurs=contest.id_concurs) }}">{{
-                            contest.nume_set }}</a>
+                        <a href="{{ url_for('preview_quizzes', id_concurs=contest.id_concurs) }}">{{ contest.nume_set }}</a>
                         {% else %}
                         N/A
                         {% endif %}
                     </td>
-
                     <td>
                         <div class="participants-box">
                             {% if contest.participants %}
@@ -388,11 +405,35 @@
                 </tr>
                 {% endfor %}
             </tbody>
-        </table>
+            
         {% else %}
         <p>Nu există niciun concurs înregistrat.</p>
         {% endif %}
     </div>
 </body>
+<script>
+    function logout() {
+            stop_recording()
+                .then(() => {
+                    // setTimeout(() => {
+                    //     console.log("Redirecting...");
+                    // }, 1000);
+                    window.location.href = "{{ url_for('logout') }}";
+                })
+                .catch(error => {
+                    console.error("Error during logout or stop recording: ", error);
+                })
+        }
 
+        function stop_recording() {
+            return fetch("http://localhost:5055/stop")  // Return the fetch promise
+                .then(response => {
+                    if (!response.ok) throw new Error("Recording stop failed!");
+                    console.log("Recording stopped.");
+                })
+                .catch(error => {
+                    console.error("Error in stop_recording:", error);
+                });
+        }
+</script>
 </html>
