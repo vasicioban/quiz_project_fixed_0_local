@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editare Sucursală</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -91,11 +92,11 @@
             box-sizing: border-box;
         }
 
-        .save-button {
+        .btn-add {
             max-width: 200px;
-            margin: 20px auto 0;
+            margin: 10px auto 0;
             display: block;
-            padding: 10px;
+            
             background-color: #007bff;
             border: none;
             border-radius: 4px;
@@ -110,7 +111,7 @@
 
         .back-link-container {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .back-link {
@@ -118,6 +119,7 @@
             padding: 10px 20px;
 
         }
+
     </style>
 </head>
 
@@ -140,7 +142,7 @@
                 <label for="sucursala">Sucursala:</label>
                 <input type="text" id="sucursala" name="sucursala" value="{{ sucursala }}" required>
             </div>
-            <button type="submit" class="save-button">Salvare</button>
+            <button type="submit" class="btn-add">Salvare</button>
             <div class="back-link-container">
                 <a href="/view_branches" class="back-link">Înapoi</a>
             </div>

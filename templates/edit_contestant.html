@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <title>Editare Concurent</title>
     <style>
         body {
@@ -98,6 +99,19 @@
             margin: 20px auto 20px;
             display: block;
             padding: 10px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-add {
+            max-width: 100px;
+            margin: 20px auto 0;
+            display: block;
+            
             background-color: #007bff;
             border: none;
             border-radius: 4px;
@@ -226,7 +240,7 @@
                 </ul>
             </div>
 
-            <button type="submit" class="save-button">Salvare</button>
+            <button type="submit" class="btn-add">Salvare</button>
             <div class="back-link-container">
                 <a href="/view_contestants" class="back-link">Înapoi</a>
             </div>

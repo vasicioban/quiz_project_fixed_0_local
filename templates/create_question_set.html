@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Creare Set de Întrebări</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -222,6 +223,19 @@
             transition: background-color 0.3s;
         }
 
+        .btn-add {
+            max-width: 100px;
+            margin: 20px auto 0;
+            display: block;
+            
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
         .save-button:hover {
             background-color: #0056b3;
         }
@@ -237,9 +251,9 @@
 
         }
     </style>
-
-    <head>
-        <title>Creare Set Întrebări</title>
+</head>
+ 
+       
         <script>
             function updateAnswerInputs(answerCount, parentElement) {
                 const answerContainer = parentElement.querySelector('.answer-container');
@@ -463,13 +477,13 @@
                 });
         }
         </script>
-    </head>
+    
 
 <body>
-    {% with messages = get_flashed_messages() %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-danger">
+    {% for category, message in messages %}
+    <div class="alert alert-{{category}}" role="alert">
         {{ message }}
     </div>
     {% endfor %}
@@ -485,7 +499,6 @@
             <a onclick="logout()" style="color: #fff; text-decoration: none;">Delogare</a>
         </div>
     </div>
-
     <div class="create-question-set-container">
         <h2>Creare Set de Întrebări</h2>
         <form action="/create_question_set" method="POST">
@@ -496,7 +509,7 @@
                 <input type="text" id="nume_set" name="nume_set" placeholder="Nume Set" required>
             </div>
             <div id="question-container" class="question-container"></div>
-            <button type="submit" class="save-button">Salvare</button>
+            <button type="submit" class="btn-add">Salvare</button>
             <div class="back-link-container">
                 <a href="/view_question_sets" class="back-link">Înapoi</a>
             </div>

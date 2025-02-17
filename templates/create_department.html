@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Creare Sucursală și Departamente</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -92,35 +93,38 @@
             box-sizing: border-box;
         }
 
-        .add-department {
-            margin-left: 10px;
-            padding: 10px;
-            background-color: #007bff;
-            border: none;
-            color: #fff;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
+        .add-department, .remove-department {
+    background: linear-gradient(to right, #4fa1fe, #4c00fe);
+    color: white;
+    padding: 10px 10px;
+    border-radius: 10px; 
+    text-decoration: none;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    border: none;
+    display: inline-block;
+    min-width: 80px;
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
 
-        .add-department:hover {
-            background-color: #0056b3;
-        }
+.add-department:hover, .remove-department:hover {
+    background: linear-gradient(to right, #4c00fe, #4fa1fe);
+    transform: scale(1.05);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+}
 
-        .remove-department {
-            margin-left: 10px;
-            padding: 10px;
-            background-color: #da5a67;
-            border: none;
-            color: #fff;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
+/* Pentru butonul de ștergere, adăugăm o variantă roșie */
+.remove-department {
+    background: linear-gradient(to right, #ff4b5c, #d90429);
+}
 
-        .remove-department:hover {
-            background-color: #c82333;
-        }
+.remove-department:hover {
+    background: linear-gradient(to right, #d90429, #ff4b5c);
+}
+
 
         .alert {
             padding: 10px;
@@ -137,7 +141,7 @@
             background-color: #f1b1b9;
         }
 
-        .save-button {
+        .btn-add {
             max-width: 200px;
             margin: 20px auto 0;
             display: block;
@@ -150,9 +154,7 @@
             transition: background-color 0.3s;
         }
 
-        .save-button:hover {
-            background-color: #0056b3;
-        }
+        
 
         .back-link-container {
             text-align: center;
@@ -211,7 +213,7 @@
                     <button type="button" class="add-department">Adăugare</button>
                 </div>
             </div>
-            <button type="submit" class="save-button">Salvare</button>
+            <button type="submit" class="btn-add">Salvare</button>
             <div class="back-link-container">
                 <a href="/view_department" class="back-link">Înapoi</a>
             </div>

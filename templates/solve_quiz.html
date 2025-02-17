@@ -105,15 +105,22 @@
 
     button {
       padding: 12px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s, box-shadow 0.3s;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    display: inline-block;
+    min-width: 80px;
+    
+    text-align: center;
+    color: white;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
     }
 
     button:hover {
       box-shadow: 0 2px 10px rgba(0, 123, 255, 0.3);
+      transform: scale(1.05);
     }
 
     #next-btn {
@@ -128,24 +135,38 @@
 
     #skip-btn {
       width: 200px;
-      background-color: #6c757d;
+      background-color: #007bff;
       color: white;
     }
 
     #skip-btn:hover {
-      background-color: #5a6268;
+      background-color: #0056b3;
     }
+
+    
 
     .submit-button button {
-      background-color: #28a745;
-      color: white;
-      width: 100%;
-      max-width: 600px;
-    }
+    background-color:  #2e8d4a;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 10px; 
+    text-decoration: none;
+    text-align: center;
 
-    .submit-button button:hover {
-      background-color: #218838;
-    }
+    font-size: 16px;
+    border: none;
+    display: inline-block;
+    min-width: 80px;
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.submit-button button:hover {
+    background-color: #288644;
+    transform: scale(1.05); 
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+}
 
     .disabled {
       background-color: gray !important;
@@ -188,7 +209,7 @@
   messages %} {% for category, message in messages %}
   <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
   {% endfor %} {% endif %} {% endwith %}
-  <div class="header">
+  <!--<div class="header">
     <div class="logo-title-container">
       <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px" />
       <a href="/menu">HidroQuiz</a>
@@ -198,6 +219,8 @@
       <a onclick="logout()" style="color: #fff; text-decoration: none;">Delogare</a>
     </div>
   </div>
+
+-->
   <form id="test-form" action="{{ url_for('solve_quiz', id_chestionar=id_chestionar) }}" method="POST">
     <input type="hidden" name="id_concurs" value="{{ id_concurs }}" />
 

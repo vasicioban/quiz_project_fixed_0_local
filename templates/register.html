@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Înregistrare utilizator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         .header {
             background-color: #007bff;
@@ -185,7 +186,7 @@
                 <option value="hr">HR</option>
                 <option value="contribuitor">Contributor</option>
             </select>
-            <button type="submit">Salvare</button>
+            <button type="submit" class="btn-add">Salvare</button>
             <a href="/view_users">Înapoi</a>
         </form>
     </div>

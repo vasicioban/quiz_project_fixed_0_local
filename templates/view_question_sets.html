@@ -5,10 +5,126 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vizualizare Seturi de Întrebări</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
         integrity="sha512-sZwrsfUwWbMzL33yGrO+ZfrL0uZxshD8P1eDB/Jn0fn0FhDzEO6uTosDD/SsGOeU2yn8PDBly7zHJW1P7Ne9MA=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+         body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        .header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-title-container a {
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info span {
+            margin-right: 10px;
+            color: #fff;
+        }
+
+        .user-info a {
+            color: #fff;
+            text-decoration: none;
+            padding: 5px 10px;
+            background-color: #0056b3;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .user-info a:hover {
+            background-color: #004080;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            position: relative;
+            flex-grow: 1;
+            margin-right: 20px;
+        }
+
+        .search-box input[type="text"] {
+            width: 90%;
+            padding: 5px 5px 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-left: 0;
+        }
+
+        .search-box button {
+            position: absolute;
+            top: 50%;
+            right: 5px;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+        }
+
+        .search-box button img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .search-container button {
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            padding-left: 2%;
+            padding-right: 2%;
+        }
+
+        .search-container button:hover {
+            background-color: #d5e3f1;
+        }
+
+        .btn-add {
+    background: linear-gradient(to right,#4fa1fe, #4c00fe);
+    color: white;
+    padding: 10px 10px;
+    border-radius: 15px;
+    text-decoration: none;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    border: none;
+    display: inline-block;
+    min-width: 60px;
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+    </style>
 
 </head>
 
@@ -101,5 +217,29 @@
         {% endif %}
     </div>
 </body>
+<script>
+    function logout() {
+            stop_recording()
+                .then(() => {
+                    // setTimeout(() => {
+                    //     console.log("Redirecting...");
+                    // }, 1000);
+                    window.location.href = "{{ url_for('logout') }}";
+                })
+                .catch(error => {
+                    console.error("Error during logout or stop recording: ", error);
+                })
+        }
 
+        function stop_recording() {
+            return fetch("http://localhost:5055/stop")  // Return the fetch promise
+                .then(response => {
+                    if (!response.ok) throw new Error("Recording stop failed!");
+                    console.log("Recording stopped.");
+                })
+                .catch(error => {
+                    console.error("Error in stop_recording:", error);
+                });
+        }
+</script>
 </html>

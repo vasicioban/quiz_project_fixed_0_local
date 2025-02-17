@@ -154,11 +154,36 @@
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
         }
 
+        .contest-container button {
+    background-color: linear-gradient(to right, #4fa1fe, #4c00fe);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 10px; 
+    text-decoration: none;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    border: none;
+    display: inline-block;
+    min-width: 80px;
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.contest-container button:hover {
+    background-color: linear-gradient(to right, #4c00fe, #4fa1fe); 
+    transform: scale(1.05); 
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+}
+
 
         .contest-container button.disabled {
             background-color: gray;
             cursor: not-allowed;
             box-shadow: none;
+            font-weight: bold;
+            font-size: 14px;
         }
 
 
@@ -198,6 +223,19 @@
     border-radius: 8px;
     display: inline-block;
 }
+
+.btn-add {
+            max-width: 100px;
+            margin: 20px auto 0;
+            display: block;
+            
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
 
     </style>
 </head>

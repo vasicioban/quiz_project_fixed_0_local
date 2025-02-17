@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Editare Utilizator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         .header {
             background-color: #007bff;
@@ -195,7 +196,7 @@
                 <option value="contribuitor" {% if user[2]=='contribuitor' %}selected{% endif %}>Contributor</option>
             </select>
 
-            <button type="submit">Salvare</button>
+            <button type="submit" class="btn-add">Salvare</button>
             <a href="/view_users">Înapoi</a>
         </form>
     </div>

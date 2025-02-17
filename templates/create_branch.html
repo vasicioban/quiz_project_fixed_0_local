@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Creare Sucursală</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -92,7 +93,7 @@
         }
 
 
-        .save-button {
+        .btn-add {
             max-width: 200px;
             margin: 20px auto 0;
             display: block;
@@ -105,13 +106,11 @@
             transition: background-color 0.3s;
         }
 
-        .save-button:hover {
-            background-color: #0056b3;
-        }
+        
 
         .back-link-container {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .back-link {
@@ -167,7 +166,7 @@
                 <label for="branch">Sucursala:</label>
                 <input type="text" id="branch" name="branch" class="form-control" placeholder="Nume sucursală" required>
             </div>
-            <button type="submit" class="save-button">Salvare</button>
+            <button type="submit" class="btn-add">Salvare</button>
             <div class="back-link-container">
                 <a href="/view_branches" class="back-link">Înapoi</a>
         </form>

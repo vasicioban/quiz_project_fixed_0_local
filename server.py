@@ -2896,6 +2896,7 @@ def view_contest(id_concurs):
 @authenticate
 @authorize(['admin', 'hr', 'concurent'])
 def test_report(id_concurs, id_set, username, total_score):
+    user_type = session["user_type"]
     if "username" not in session:
         return redirect(url_for("login"))
 
@@ -2997,7 +2998,8 @@ def test_report(id_concurs, id_set, username, total_score):
             total_score=total_score,
             username=username,
             id_concurs=id_concurs,
-            contest_title=contest_title
+            contest_title=contest_title,
+            user_type=user_type
         )
 
     except (Exception, psycopg2.Error) as error:
@@ -3010,6 +3012,9 @@ def test_report(id_concurs, id_set, username, total_score):
             cursor.close()
         if connection:
             connection.close()
+
+
+            
 
 
 

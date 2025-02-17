@@ -127,7 +127,8 @@
                 <h3>{{ loop.index }}. {{ question.question_text }} - Punctaj: {{ question.total_score }}</h3>
                 <div class="answers">
                     {% for answer in question.answers %}
-                    <div class="answer {% if answer.selected and answer.is_correct %}correct-answer{% elif answer.selected and not answer.is_correct %}incorrect-answer{% else %}unselected-answer{% endif %}">
+                    <div
+                        class="answer {% if answer.selected and answer.is_correct %}correct-answer{% elif answer.selected and not answer.is_correct %}incorrect-answer{% else %}unselected-answer{% endif %}">
                         {{ answer.answer_text }} - Punctaj: {{ answer.score }}p
                     </div>
                     {% endfor %}
@@ -136,15 +137,33 @@
             {% endfor %}
         </div>
         <div class="save-buttons">
+            {% if user_type == 'concurent' %}
+
+            <button class="btn btn-info" id="downloadPDF2">Finalizare</button>
+
+
+            {% elif user_type == 'contribuitor' %}
+
             <button class="btn btn-info" id="downloadPDF2">Download PDF</button>
+
+            {% elif user_type == 'hr' %}
+
+            <button class="btn btn-info" id="downloadPDF2">Download PDF</button>
+
+            {% elif user_type == 'admin' %}
+
+            <button class="btn btn-info" id="downloadPDF2">Download PDF</button>
+
+            {% endif %}
         </div>
     </div>
+
 
 
     <script>
         window.history.pushState(null, "", window.location.href);
         window.onpopstate = () => {
-            window.location.href = "/contest/{{ id_concurs }}";
+            window.location.href = "/menu";
         };
 
         document.getElementById('downloadPDF2').addEventListener('click', function () {
@@ -161,7 +180,7 @@
 
             const totalScore = document.getElementById('total-score').textContent;
             const user = document.getElementById('user').textContent;
-            const idConcurs = "{{ id_concurs }}"; 
+            const idConcurs = "{{ id_concurs }}";
             const contestTitle = document.getElementById('contest-title').textContent;
 
 
@@ -261,9 +280,6 @@
                 })
                     .then(response => response.json())
                     .then(data => {
-                        if (data.status === 'PDF saved successfully') {
-                            alert('PDF salvat cu succes în baza de date!');
-                        }
                         window.location.href = data.redirect_url
                     })
                     .catch(error => {

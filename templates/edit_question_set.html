@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editare Set de Întrebări</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -203,6 +204,18 @@
             margin: 20px auto 0;
             display: block;
             padding: 10px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-add {
+            max-width: 100px;
+            margin: 20px auto 0;
+            display: block;
+            
             background-color: #007bff;
             border: none;
             border-radius: 4px;
@@ -513,7 +526,7 @@
                 <input type="text" id="nume_set" name="nume_set" value="{{ question_set[1] }}" required>
             </div>
             <div id="question-container" class="question-container"></div>
-            <button type="submit" class="save-button">Salvare</button>
+            <button type="submit" class="btn-add">Salvare</button>
             <div class="back-link-container">
                 <a href="/view_question_sets" class="back-link">Înapoi</a>
             </div>
