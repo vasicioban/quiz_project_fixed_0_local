@@ -2889,6 +2889,139 @@ def view_contest(id_concurs):
     )
 
 
+@app.route("/final_report/<int:id_concurs>", methods=["GET"])
+@authenticate
+@authorize(['admin', 'hr'])
+def final_report(id_concurs):
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    connection = None
+    cursor = None
+
+    try:
+        connection = connect_db()
+        cursor = connection.cursor()
+
+        print(f"Generating final report for contest: {id_concurs}")
+
+        # TODO
+        cursor.execute(
+        """
+        select 
+        	cc.username
+        	,cc.nume_prenume
+        	,chin.id_intrebare
+        	,si.scor as punctaj_obtinut
+        	,SUM(si.scor) OVER (PARTITION BY cc.username, c.id_concurs, ch.tip) as total_score
+        	,ch.tip
+        	
+    	from concurs c
+        	join chestionare ch on ch.id_concurs = c.id_concurs
+        	join chestionar_intrebari chin ON chin.id_chestionar = ch.id_chestionar
+        	join participanti_concurs pc on c.id_concurs = pc.id_concurs
+        	join concurenti cc on cc.username = pc.username
+        	join 
+        	(
+        		select 
+        			username
+        			,id_concurs
+        			,id_intrebare
+        			,SUM(punctaj) as scor
+        		from participanti_raspuns
+        		group by username, id_concurs, id_intrebare
+        	) as si on  si.username = pc.username and si.id_concurs = c.id_concurs and si.id_intrebare = chin.id_intrebare
+        	
+            WHERE c.id_concurs = %s::VARCHAR
+            ORDER BY ch.tip, total_score DESC, cc.nume_prenume, chin.id_intrebare
+        """,
+            (str(id_concurs),)
+        )
+
+        # # Fetch all participants and their scores per question
+        # cursor.execute(
+        #     """
+        #     SELECT pr.username, c.nume_prenume, pr.id_intrebare, pr.punctaj, ps.scor_total, ch.tip
+        #     FROM participanti_raspuns pr
+        #     JOIN participanti_scoruri ps ON pr.username = ps.username AND pr.id_concurs = ps.id_concurs
+        #     JOIN concurenti c ON pr.username = c.username
+        #     JOIN chestionare ch ON pr.id_concurs = ch.id_concurs
+        #     """,
+        #     (str(id_concurs),)
+        # )
+        
+        rows = cursor.fetchall()
+        print("Fetched rows:", rows)
+
+        standard_participants = {}
+        reserve_participants = {}
+
+        for row in rows:
+            username, nume_prenume, id_intrebare, punctaj_obtinut, total_score, tip = row
+            
+            participant_dict = standard_participants if tip == 'standard' else reserve_participants
+            
+            if username not in participant_dict:
+                participant_dict[username] = {
+                    "nume_prenume": nume_prenume,
+                    "scores": {},
+                    "total_score": total_score
+                }
+            
+            participant_dict[username]["scores"][id_intrebare] = punctaj_obtinut
+
+        print("Standard Participants:", standard_participants)
+        print("Reserve Participants:", reserve_participants)
+
+        # Fetch all question IDs
+        cursor.execute(
+            """
+            SELECT DISTINCT ci.id_intrebare
+            FROM chestionar_intrebari ci
+            JOIN chestionare ch ON ci.id_chestionar = ch.id_chestionar
+            WHERE ch.id_concurs = %s::VARCHAR AND ch.tip = 'standard'
+            ORDER BY ci.id_intrebare
+            """,
+            (str(id_concurs),)
+        )
+        standard_question_ids = [row[0] for row in cursor.fetchall()]
+        print("Standard Questions:", standard_question_ids)
+
+        cursor.execute(
+            """
+            SELECT DISTINCT ci.id_intrebare
+            FROM chestionar_intrebari ci
+            JOIN chestionare ch ON ci.id_chestionar = ch.id_chestionar
+            WHERE ch.id_concurs = %s::VARCHAR AND ch.tip = 'rezerva'
+            ORDER BY ci.id_intrebare
+            """,
+            (str(id_concurs),)
+        )
+        reserve_question_ids = [row[0] for row in cursor.fetchall()]
+        print("Reserve Questions:", reserve_question_ids)
+
+        return render_template(
+            "final_report.html",
+            standard_participants=standard_participants,
+            reserve_participants=reserve_participants,
+            standard_question_ids=standard_question_ids,
+            reserve_question_ids=reserve_question_ids,
+            id_concurs=id_concurs
+        )
+    
+    except Exception as e:
+        print("Error generating final report:", e)
+        flash("A intervenit o eroare la generarea raportului final.", "danger")
+        return redirect(url_for("view_contest", id_concurs=id_concurs))
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
+
+
+
 @app.route(
     "/test_report/<int:id_concurs>/<int:id_set>/<username>/<int:total_score>",
     methods=["GET", "POST"],

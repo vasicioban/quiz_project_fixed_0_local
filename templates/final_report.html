@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raport Final - Concurs {{ id_concurs }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .container {
+            width: 90%;
+            margin: auto;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header-row text-center my-4">
+            <h2>Raport Final - Concurs #{{ id_concurs }}</h2>
+        </div>
+
+        <!-- Standard -->
+        <h3>Standard</h3>
+        {% if standard_participants %}
+        <table class="table table-bordered text-center">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Concurent</th>
+                    {% for qid in standard_question_ids %}
+                    <th>Întrebarea {{ qid }}</th>
+                    {% endfor %}
+                    <th>Punctaj Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for username, data in standard_participants.items() %}
+                <tr>
+                    <td>{{ data.nume_prenume }}</td>
+                    {% for qid in standard_question_ids %}
+                    <td>{{ data.scores.get(qid, 0) }}</td>
+                    {% endfor %}
+                    <td><strong>{{ data.total_score }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">Nu există participanți standard.</p>
+        {% endif %}
+
+        <!-- Rezerva -->
+        <h3>Rezerva</h3>
+        {% if reserve_participants %}
+        <table class="table table-bordered text-center">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Concurent</th>
+                    {% for qid in reserve_question_ids %}
+                    <th>Întrebarea {{ qid }}</th>
+                    {% endfor %}
+                    <th>Punctaj Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for username, data in reserve_participants.items() %}
+                <tr>
+                    <td>{{ data.nume_prenume }}</td>
+                    {% for qid in reserve_question_ids %}
+                    <td>{{ data.scores.get(qid, 0) }}</td>
+                    {% endfor %}
+                    <td><strong>{{ data.total_score }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">Nu există participanți de rezervă.</p>
+        {% endif %}
+    </div>
+</body>
+
+
+</html>
