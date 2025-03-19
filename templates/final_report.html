@@ -1,49 +1,174 @@
 <!DOCTYPE html>
 <html lang="ro">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Raport Final - Concurs {{ id_concurs }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+        integrity="sha512-sZwrsfUwWbMzL33yGrO+ZfrL0uZxshD8P1eDB/Jn0fn0FhDzEO6uTosDD/SsGOeU2yn8PDBly7zHJW1P7Ne9MA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+        <script src="{{ url_for('static', filename='robotoRegularBase64.js') }}"></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
         }
+
+        .header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            margin-left: 10px;
+        }
+
+        .logo-title-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-title-container a {
+            color: white;
+            font-size: 24px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info span {
+            margin-right: 10px;
+            color: #fff;
+        }
+
+        .user-info a {
+            color: #fff;
+            text-decoration: none;
+            padding: 5px 10px;
+            background-color: #0056b3;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .user-info a:hover {
+            background-color: #004080;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
         h2 {
             text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        h3 {
+            color: #333;
             margin-bottom: 10px;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
-        th, td {
-            border: 1px solid black;
+
+        th,
+        td {
+            border: 1px solid #ccc;
             padding: 8px;
             text-align: center;
         }
+
         th {
-            background-color: #f2f2f2;
+            background-color:   #4fa1fe;
+            color: #0a0a0a;
         }
-        .container {
-            width: 90%;
-            margin: auto;
+
+        .text-muted {
+            color: #6c757d;
         }
-        .section {
-            margin-bottom: 40px;
-        }
-    </style>
+        
+
+    .btn-download {
+        background: linear-gradient(to right, #4fa1fe, #4c00fe); /* Gradient liniar */
+        color: white;
+        padding: 10px 20px;
+        border-radius: 15px; /* Margini rotunjite */
+        text-decoration: none;
+        text-align: center;
+        font-weight: bold;
+        font-size: 16px;
+        border: none;
+        display: inline-block;
+        transition: all 0.3s ease-in-out;
+        cursor: pointer;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Umbră */
+        margin: 0 auto; /* Centrează butonul */
+    }
+
+    .btn-download:hover {
+        background: linear-gradient(to right, #4c00fe, #4fa1fe); /* Efect de hover */
+        transform: scale(1.05); /* Efect de mărire */
+        box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3); /* Umbră mai intensă */
+    }
+</style>
+   
 </head>
 
 <body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="header">
+        <div class="logo-title-container">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 30px;">
+            <a href="/menu">HidroQuiz</a>
+        </div>
+        <div class="user-info">
+            <span>Bine ai venit, {{ username }}!</span>
+            <a onclick="logout()" style="color: #fff; text-decoration: none;">Delogare</a>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header-row text-center my-4">
-            <h2>Raport Final - Concurs #{{ id_concurs }}</h2>
+            <h2>Raport Final - Concurs {{ contest_title }}</h2>
+
         </div>
 
-        <!-- Standard -->
+        <!-- Standard Participants -->
         <h3>Standard</h3>
         {% if standard_participants %}
         <table class="table table-bordered text-center">
@@ -51,13 +176,13 @@
                 <tr>
                     <th>Concurent</th>
                     {% for qid in standard_question_ids %}
-                    <th>Întrebarea {{ qid }}</th>
+                    <th>Q{{ loop.index }}</th>
                     {% endfor %}
-                    <th>Punctaj Total</th>
+                    <th>Total</th>
                 </tr>
             </thead>
             <tbody>
-                {% for username, data in standard_participants.items() %}
+                {% for participant_username, data in standard_participants.items() %}
                 <tr>
                     <td>{{ data.nume_prenume }}</td>
                     {% for qid in standard_question_ids %}
@@ -69,10 +194,10 @@
             </tbody>
         </table>
         {% else %}
-        <p class="text-muted">Nu există participanți standard.</p>
+        <p class="text-muted">Nu există concurenți care au efectuat concursul standard.</p>
         {% endif %}
 
-        <!-- Rezerva -->
+        <!-- Reserve Participants -->
         <h3>Rezerva</h3>
         {% if reserve_participants %}
         <table class="table table-bordered text-center">
@@ -80,13 +205,13 @@
                 <tr>
                     <th>Concurent</th>
                     {% for qid in reserve_question_ids %}
-                    <th>Întrebarea {{ qid }}</th>
+                    <th>Q{{ loop.index }}</th>
                     {% endfor %}
                     <th>Punctaj Total</th>
                 </tr>
             </thead>
             <tbody>
-                {% for username, data in reserve_participants.items() %}
+                {% for participant_username, data in reserve_participants.items() %}
                 <tr>
                     <td>{{ data.nume_prenume }}</td>
                     {% for qid in reserve_question_ids %}
@@ -98,10 +223,187 @@
             </tbody>
         </table>
         {% else %}
-        <p class="text-muted">Nu există participanți de rezervă.</p>
+        <p class="text-muted">Nu există concurenți care au efectuat concursul de rezervă.</p>
         {% endif %}
+        
+        <div class="save-buttons my-4" style="text-align: center;">
+            <button class="btn-download" id="downloadFinalPDF">Download Raport PDF</button>
+        </div>
     </div>
+
+    <script>
+       
+        const standardParticipants = JSON.parse('{{ standard_participants | tojson | safe }}');
+        console.log("Standard Participants:", standardParticipants);
+
+        const standardQIds = JSON.parse('{{ standard_question_ids | tojson | safe }}');
+        console.log("Standard Question IDs:", standardQIds);
+
+        const reserveParticipants = JSON.parse('{{ reserve_participants | tojson | safe }}');
+        console.log("Reserve Participants:", reserveParticipants);
+
+        const reserveQIds = JSON.parse('{{ reserve_question_ids | tojson | safe }}');
+        console.log("Reserve Question IDs:", reserveQIds);
+
+        const username = "{{ username }}";
+        const contest_title = "{{ contest_title }}";
+
+        document.getElementById('downloadFinalPDF').addEventListener('click', function () {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('l', 'pt', 'a4'); // Landscape
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const margin = 40;
+    let y = margin;
+
+    const logoUrl = '{{ url_for("static", filename="logo_report.jpg") }}';
+    const img = new Image();
+    img.src = logoUrl;
+
+    img.onload = function () {
+        const logoHeight = 30;
+        const aspectRatio = img.width / img.height;
+        const newLogoHeight = logoHeight;
+        const newLogoWidth = newLogoHeight * aspectRatio;
+
+        pdf.addFileToVFS("Roboto-Regular.ttf", robotoRegularBase64);
+                pdf.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+                pdf.setFont("Roboto");
+
+        pdf.addImage(img, 'JPEG', margin, margin, newLogoWidth, newLogoHeight);
+
+        const confidentialText = 'Nedestinat publicității/Confidențial';
+        pdf.setFontSize(10);
+        pdf.text(confidentialText, pdfWidth - margin - pdf.getTextWidth(confidentialText), margin + newLogoHeight / 2);
+
+        y += newLogoHeight + 20;
+
+      
+        pdf.setFontSize(16);
+        pdf.setFont("helvetica", "bold");
+        const titleText = `Raport Final - Concurs "${contest_title}"`;
+        const titleLines = pdf.splitTextToSize(titleText, pdfWidth - 2 * margin);
+        pdf.text(titleLines, margin, y);
+        y += titleLines.length * 20;
+
+        
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "normal");
+        const today = new Date().toLocaleDateString();
+        pdf.text(`Utilizator: ${username}`, margin, y);
+        y += 15;
+        pdf.text(`Data: ${today}`, margin, y);
+        y += 20;
+
+        // ===================== STANDARD =====================
+        pdf.setFontSize(13);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("Standard", margin, y);
+        y += 10;
+
+        if (Object.keys(standardParticipants).length > 0) {
+            const header = ["Concurent", ...standardQIds.map((_, i) => `Q${i + 1}`), "Total"];
+            const body = [];
+
+            for (const key in standardParticipants) {
+                const participant = standardParticipants[key];
+                const row = [participant.nume_prenume];
+                standardQIds.forEach(qid => {
+                    row.push(participant.scores[qid] || 0);
+                });
+                row.push(participant.total_score);
+                body.push(row);
+            }
+
+            pdf.autoTable({
+                startY: y,
+                head: [header],
+                body: body,
+                theme: 'grid',
+                margin: { left: margin, right: margin },
+                styles: { fontSize: 10 },
+                headStyles: { fillColor: [79, 161, 254] }, 
+                didDrawPage: function (data) {
+                    y = data.cursor.y + 30;
+                }
+            });
+        } else {
+            y += 15;
+            pdf.setFontSize(11);
+            pdf.setFont("helvetica", "normal");
+            pdf.text("Nu există concurenți care au efectuat concursul standard.", margin, y);
+            y += 20;
+        }
+
+        // ===================== REZERVĂ =====================
+        pdf.setFontSize(13);
+        pdf.setFont("helvetica", "bold");
+        pdf.text("Rezerva", margin, y);
+        y += 10;
+
+        if (Object.keys(reserveParticipants).length > 0) {
+            const header = ["Concurent", ...reserveQIds.map((_, i) => `Q${i + 1}`), "Total"];
+            const body = [];
+
+            for (const key in reserveParticipants) {
+                const participant = reserveParticipants[key];
+                const row = [participant.nume_prenume];
+                reserveQIds.forEach(qid => {
+                    row.push(participant.scores[qid] || 0);
+                });
+                row.push(participant.total_score);
+                body.push(row);
+            }
+
+            pdf.autoTable({
+                startY: y,
+                head: [header],
+                body: body,
+                theme: 'grid',
+                margin: { left: margin, right: margin },
+                styles: { fontSize: 10 },
+                headStyles: { fillColor: [79, 161, 254] }, 
+                didDrawPage: function (data) {
+                    y = data.cursor.y + 30;
+                }
+            });
+        } else {
+            y += 15;
+            pdf.setFontSize(11);
+            pdf.setFont("helvetica", "normal");
+            pdf.text("Nu există concurenți care au efectuat concursul de rezervă.", margin, y);
+        }
+
+        // Salvare
+        pdf.save(`raport_final_concurs_${contest_title}.pdf`);
+    };
+});
+
+
+        // Funcția de logout cu loguri
+        function logout() {
+            console.log("Se încearcă delogarea utilizatorului...");
+            stop_recording()
+                .then(() => {
+                    window.location.href = "{{ url_for('logout') }}";
+                })
+                .catch(error => {
+                    console.error("Error during logout or stop recording:", error);
+                });
+        }
+
+        // Funcția de stop_recording cu loguri
+        function stop_recording() {
+            console.log("Se oprește înregistrarea...");
+            return fetch("http://localhost:5055/stop")
+                .then(response => {
+                    if (!response.ok) throw new Error("Recording stop failed!");
+                    console.log("Recording stopped.");
+                })
+                .catch(error => {
+                    console.error("Error in stop_recording:", error);
+                });
+        }
+    </script>
 </body>
-
-
 </html>
