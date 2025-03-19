@@ -769,26 +769,50 @@ def view_contests():
         cursor.execute(query, tuple(params))
         contests = cursor.fetchall()
 
+        contests_data = []
+        for contest in contests:
+            participants = []
+            for participant in contest[5]:
+                cursor.execute(
+                    "SELECT id_set, scor_total FROM participanti_scoruri WHERE id_concurs = %s AND username = %s",
+                    (contest[0], participant),
+                )
+                rows = cursor.fetchall()
+                variants = []
+                for row in rows:
+                    variants.append(
+                        {
+                            "id_set": row[0],
+                            "total_score": row[1],
+                            "title": "Standard"
+                            if len(variants) == 0
+                            else "Rezerva",
+                            "completed": row[1] is not None,
+                        }
+                    )
+                participants.append({
+                    "username": participant,
+                    "variants": variants,
+                })
+
+            contests_data.append(
+                {
+                    "id_concurs": contest[0],
+                    "titlu": contest[1],
+                    "sucursala": contest[2],
+                    "departament": contest[3],
+                    "data_ora": contest[4],
+                    "participants": participants,
+                    "nume_set": contest[7],
+                }
+            )
+        
     except (Exception, psycopg2.Error) as error:
         print("Eroare la preluarea datelor din PostgreSQL", error)
     finally:
         if connection:
             cursor.close()
             connection.close()
-
-    contests_data = []
-    for contest in contests:
-        contests_data.append(
-            {
-                "id_concurs": contest[0],
-                "titlu": contest[1],
-                "sucursala": contest[2],
-                "departament": contest[3],
-                "data_ora": contest[4],
-                "participants": contest[5],
-                "nume_set": contest[7],
-            }
-        )
 
     has_contests = len(contests_data) > 0
 

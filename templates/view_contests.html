@@ -245,6 +245,10 @@
     color: #808080; /* Text gri */
 }
 
+        .participants-box table, .participants-box tbody {
+            margin: 0;
+            border-style: hidden;
+        }
     </style>
 </head>
 
@@ -362,7 +366,7 @@
                 {% set contest_date = contest.data_ora %}
                 
                 <!-- Compară data concursului cu data curentă -->
-                <tr class="{% if contest_date < current_date %}past-contest{% endif %}">
+                <tr class="{% if contest_date < current_date %}past-contest{% endif %}" onclick="toggleExpand(event)">
                     <td>{{ contest.id_concurs }}</td>
                     <td>{{ contest.titlu }}</td>
                     <td>{{ contest.sucursala }}</td>
@@ -377,13 +381,26 @@
                     </td>
                     <td>
                         <div class="participants-box">
+                            <table><tbody>
                             {% if contest.participants %}
                             {% for participant in contest.participants %}
-                            <span>{{ participant }}</span><br>
+                            <tr>
+                                <td>{{ participant.username }}</td>
+                                <td>
+                                {% for variant in participant.variants %}
+                                {% if variant.completed %}
+                                <a href="{{ url_for('test_report', id_concurs=contest.id_concurs, id_set=variant.id_set, username=participant.username, total_score=variant.total_score) }}"
+                                    target="_blank">{{ variant.title }}</a>
+                                {% endif %}
+                                {% endfor %}
+                                </td>
+                            </tr>
                             {% endfor %}
                             {% else %}
                             <span></span>
+
                             {% endif %}
+                            </tbody></table>
                         </div>
                     </td>
                     <td>
@@ -412,6 +429,18 @@
     </div>
 </body>
 <script>
+        function toggleExpand(event) {
+        box = event.currentTarget.querySelector(".participants-box");
+        if (box.style.maxHeight == "100%") {
+            box.style.maxHeight = "35px";
+            return;
+        }
+
+        box.style.maxHeight = "100%"
+    }
+
+    document.querySelectorAll("tr a").forEach((e) => e.addEventListener("click", (event) => event.stopPropagation()))
+    
     function logout() {
             stop_recording()
                 .then(() => {
