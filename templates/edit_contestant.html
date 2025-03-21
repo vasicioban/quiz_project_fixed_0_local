@@ -215,6 +215,8 @@
         <h2>Editare Concurent</h2>
         <form action="{{ url_for('edit_contestant', id=contestant[0]) }}" method="POST">
             <input type="hidden" name="old_username" value="{{ contestant[1] }}">
+            <label for="nume_prenume">Nume și Prenume:</label>
+            <input type="text" name="nume_prenume" id="nume_prenume" value="{{ contestant[3] }}" required><br>
 
             <label for="username">Username:</label>
             <input type="text" name="username" id="username" value="{{ contestant[1] }}" required><br>

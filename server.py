@@ -260,13 +260,14 @@ def register_contestant():
             username = request.form["username"]
             password = request.form["password"]
             user_type = request.form["user_type"]
+            nume_prenume = request.form["nume_prenume"]
             selected_contests = set(map(int, request.form.getlist("contests")))
 
             hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
             cursor.execute(
-                "INSERT INTO concurenti (username, password, user_type) VALUES (%s, %s, %s)",
-                (username, hashed_password.decode("utf-8"), user_type),
+                "INSERT INTO concurenti (username, password, user_type, nume_prenume) VALUES (%s, %s, %s, %s)",
+                (username, hashed_password.decode("utf-8"), user_type, nume_prenume),
             )
 
             for contest_id in selected_contests:
@@ -308,10 +309,12 @@ def view_contestants():
     column = request.args.get("column", "username")
     order = request.args.get("order", "asc")
 
+    # ➕ Adăugat în column_mapping
     column_mapping = {
         "id": "c.id",
         "username": "c.username",
         "user_type": "c.user_type",
+        "nume_prenume": "c.nume_prenume",
         "contests_assigned": "contests_assigned",
     }
 
@@ -328,8 +331,11 @@ def view_contestants():
         )
         cursor = connection.cursor()
 
+        # ➕ Adăugat câmpul c.nume_prenume în SELECT
         query = """
-            SELECT c.id, c.username, c.user_type, array_agg(pc.id_concurs) AS assigned_contests, array_agg(concurs.titlu) AS contest_titles
+            SELECT c.id, c.username, c.user_type, c.nume_prenume,
+                   array_agg(pc.id_concurs) AS assigned_contests,
+                   array_agg(concurs.titlu) AS contest_titles
             FROM concurenti c
             LEFT JOIN participanti_concurs pc ON c.username = pc.username
             LEFT JOIN concurs ON pc.id_concurs = concurs.id_concurs
@@ -339,28 +345,27 @@ def view_contestants():
             query += """
                 WHERE LOWER(c.username) LIKE %s 
                 OR LOWER(concurs.titlu) LIKE %s
+                OR LOWER(c.nume_prenume) LIKE %s
                 OR CAST(c.id AS TEXT) LIKE %s
             """
             search_param = f"%{search_query}%"
             cursor.execute(
-                query + " GROUP BY c.id, c.username, c.user_type",
-                (search_param, search_param, search_param),
+                query + " GROUP BY c.id, c.username, c.user_type, c.nume_prenume",
+                (search_param, search_param, search_param, search_param),
             )
         else:
-            cursor.execute(query + " GROUP BY c.id, c.username, c.user_type")
+            cursor.execute(query + " GROUP BY c.id, c.username, c.user_type, c.nume_prenume")
 
         contestants = cursor.fetchall()
 
         contestants_data = []
         for contestant in contestants:
             contests_assigned = []
-            if contestant[3] != [None] and contestant[4] != [
-                None
-            ]:  # Check if there are assigned contests
-                for i in range(len(contestant[3])):
+            if contestant[4] != [None] and contestant[5] != [None]:
+                for i in range(len(contestant[4])):
                     cursor.execute(
                         "SELECT id_set, scor_total FROM participanti_scoruri WHERE id_concurs = %s AND username = %s",
-                        (contestant[3][i], contestant[1]),
+                        (contestant[4][i], contestant[1]),
                     )
                     rows = cursor.fetchall()
                     variants = []
@@ -369,17 +374,15 @@ def view_contestants():
                             {
                                 "id_set": row[0],
                                 "total_score": row[1],
-                                "title": "Standard"
-                                if len(variants) == 0
-                                else "Rezerva",
+                                "title": "Standard" if len(variants) == 0 else "Rezerva",
                                 "completed": row[1] is not None,
                             }
                         )
 
                     contests_assigned.append(
                         {
-                            "id": contestant[3][i],
-                            "titlu": contestant[4][i],
+                            "id": contestant[4][i],
+                            "titlu": contestant[5][i],
                             "variants": variants,
                         }
                     )
@@ -389,9 +392,11 @@ def view_contestants():
                     "id": contestant[0],
                     "username": contestant[1],
                     "user_type": contestant[2],
+                    "nume_prenume": contestant[3],  # ➕ Adăugat aici
                     "contests_assigned": contests_assigned,
                 }
             )
+
     except (Exception, psycopg2.Error) as error:
         print("Eroare la preluarea datelor din PostgreSQL:", error)
     finally:
@@ -402,9 +407,7 @@ def view_contestants():
     # Sorting logic
     reverse_order = order == "desc"
     if column == "contests_assigned":
-        contestants_data.sort(
-            key=lambda x: len(x["contests_assigned"]), reverse=reverse_order
-        )
+        contestants_data.sort(key=lambda x: len(x["contests_assigned"]), reverse=reverse_order)
     else:
         contestants_data.sort(key=lambda x: x[column], reverse=reverse_order)
 
@@ -421,6 +424,7 @@ def view_contestants():
     )
 
 
+
 @app.route("/edit_contestant/<int:id>", methods=["GET", "POST"])
 @authenticate
 @authorize(['admin', 'hr', 'contribuitor'])
@@ -428,116 +432,79 @@ def edit_contestant(id):
     conn = None
     cursor = None
     username = session["username"]
+
     try:
+        conn = psycopg2.connect(
+            user="postgres",
+            password="vasilica",
+            host="192.168.16.164",
+            port="5432",
+            database="postgres",
+        )
+        cursor = conn.cursor()
+
         if request.method == "POST":
             old_username = request.form.get("old_username")
             new_username = request.form.get("username")
             password = request.form.get("password")
+            
+            nume_prenume = request.form.get("nume_prenume")
+
             selected_contests = set(map(int, request.form.getlist("contests")))
 
-            if not new_username:
-                flash("Username-ul este obligatoriu!", "danger")
+            if not new_username or not nume_prenume:
+                flash("Username-ul și numele complet sunt obligatorii!", "danger")
                 return redirect(url_for("edit_contestant", id=id))
 
-            conn = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
-            cursor = conn.cursor()
             cursor.execute("BEGIN;")
 
-            # get password
-            hashed_password = ""
-            # new password -> hash
             if password:
-                hashed_password = bcrypt.hashpw(
-                    password.encode("utf-8"), bcrypt.gensalt()
-                )
-            # get old_username's password
+                hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
             else:
-                cursor.execute(
-                    "SELECT password FROM concurenti WHERE username = %s",
-                    (old_username,),
-                )
+                cursor.execute("SELECT password FROM concurenti WHERE username = %s", (old_username,))
                 hashed_password = cursor.fetchone()[0]
 
-            # update username
             if new_username != old_username:
-                cursor.execute(
-                    "UPDATE concurenti SET username = %s WHERE username = %s",
-                    (new_username, old_username),
-                )
-
-            # username did not change, but password did
-            elif password:
-                cursor.execute(
-                    """
+                cursor.execute("""
                     UPDATE concurenti
-                    SET password = %s
+                    SET username = %s, password = %s, nume_prenume = %s
+                    WHERE username = %s
+                """, (new_username, hashed_password, nume_prenume, old_username))
+            else:
+                cursor.execute("""
+                    UPDATE concurenti
+                    SET password = %s, nume_prenume = %s
                     WHERE id = %s
-                """,
-                    (hashed_password.decode("utf-8"), id),
-                )
+                """, (hashed_password, nume_prenume, id))  # ➕ aici am adăugat și nume_prenume
 
-            # fetch current contests assigned to the user
-            cursor.execute(
-                "SELECT id_concurs FROM participanti_concurs WHERE username = %s",
-                (new_username,),
-            )
-            current_contests = set(int(row[0]) for row in cursor.fetchall())
+            cursor.execute("SELECT id_concurs FROM participanti_concurs WHERE username = %s", (new_username,))
+            current_contests = set(row[0] for row in cursor.fetchall())
 
-            cursor.execute(
-                "SELECT DISTINCT id_concurs FROM participanti_scoruri WHERE username = %s",
-                (new_username,),
-            )
-            completed_contests = set(int(row[0]) for row in cursor.fetchall())
+            cursor.execute("SELECT DISTINCT id_concurs FROM participanti_scoruri WHERE username = %s", (new_username,))
+            completed_contests = set(row[0] for row in cursor.fetchall())
 
-            # Determine contests to add and remove
-            contests_to_remove = (
-                current_contests - selected_contests - completed_contests
-            )
+            contests_to_remove = current_contests - selected_contests - completed_contests
             contests_to_add = selected_contests - current_contests - completed_contests
 
-            # Remove contests that are no longer selected
             if contests_to_remove:
-                cursor.execute(
-                    "DELETE FROM participanti_concurs WHERE username = %s AND id_concurs IN %s",
-                    (new_username, tuple({str(e) for e in contests_to_remove})),
-                )
+                cursor.execute("""
+                    DELETE FROM participanti_concurs
+                    WHERE username = %s AND id_concurs IN %s
+                """, (new_username, tuple(contests_to_remove)))
 
-            # Add new contests
-            if contests_to_add:
-                for contest_id in contests_to_add:
-                    cursor.execute(
-                        """
-                        INSERT INTO participanti_concurs (id_concurs, username)
-                        VALUES (%s, %s)
-                        ON CONFLICT DO NOTHING
-                        """,
-                        (contest_id, new_username),
-                    )
+            for contest_id in contests_to_add:
+                cursor.execute("""
+                    INSERT INTO participanti_concurs (id_concurs, username)
+                    VALUES (%s, %s)
+                    ON CONFLICT DO NOTHING
+                """, (contest_id, new_username))
 
             conn.commit()
-
             flash("Concurentul a fost actualizat cu succes!", "success")
             return redirect(url_for("view_contestants"))
 
         else:
-            conn = psycopg2.connect(
-                user="postgres",
-                password="vasilica",
-                host="192.168.16.164",
-                port="5432",
-                database="postgres",
-            )
-            cursor = conn.cursor()
-
-            cursor.execute(
-                "SELECT id, username, user_type FROM concurenti WHERE id = %s", (id,)
-            )
+            cursor.execute("SELECT id, username, user_type, nume_prenume FROM concurenti WHERE id = %s", (id,))
             contestant = cursor.fetchone()
 
             if not contestant:
@@ -547,16 +514,10 @@ def edit_contestant(id):
             cursor.execute("SELECT id_concurs, titlu FROM concurs")
             contests = cursor.fetchall()
 
-            cursor.execute(
-                "SELECT id_concurs FROM participanti_concurs WHERE username = %s",
-                (contestant[1],),
-            )
+            cursor.execute("SELECT id_concurs FROM participanti_concurs WHERE username = %s", (contestant[1],))
             assigned_contests = [row[0] for row in cursor.fetchall()]
 
-            cursor.execute(
-                "SELECT DISTINCT id_concurs FROM participanti_scoruri WHERE username = %s",
-                (contestant[1],),
-            )
+            cursor.execute("SELECT DISTINCT id_concurs FROM participanti_scoruri WHERE username = %s", (contestant[1],))
             completed_contests = [row[0] for row in cursor.fetchall()]
 
             return render_template(
@@ -572,16 +533,15 @@ def edit_contestant(id):
         if conn:
             conn.rollback()
         print("Eroare la actualizarea concurentului:", error)
-        flash(
-            f"A intervenit o eroare în timpul actualizării concurentului: {error}",
-            "danger",
-        )
+        flash(f"A intervenit o eroare în timpul actualizării concurentului: {error}", "danger")
         return redirect(url_for("edit_contestant", id=id))
+
     finally:
         if cursor:
             cursor.close()
         if conn:
             conn.close()
+
 
 
 @app.route("/delete_contestant/<int:id>")
@@ -1670,17 +1630,13 @@ def delete_contest(id_concurs):
 
 
 @app.route("/view_question_sets", methods=["GET", "POST"])
-@authorize(['admin', 'hr', 'contribuitor'])
 @authenticate
+@authorize(['admin', 'hr', 'contribuitor'])
 def view_question_sets():
     user_type = session["user_type"]
     username = session["username"]
     question_sets = []
-    search_term = (
-        request.form.get("search_term")
-        if request.method == "POST"
-        else request.args.get("search_term")
-    )
+    search_term = request.args.get("search_term", "")
     column = request.args.get("column", "id_set")
     order = request.args.get("order", "asc")
 
@@ -1690,42 +1646,31 @@ def view_question_sets():
         connection = connect_db()
         cursor = connection.cursor()
 
+        query = """
+            SELECT si.id_set, si.nume_set, si.version
+            FROM seturi_intrebari si
+            LEFT JOIN seturi_intrebari children ON si.id_set = children.parent_id
+            WHERE children.id_set IS NULL
+        """
+
         if search_term:
-            query = f"""
-                SELECT id_set, nume_set 
-                FROM seturi_intrebari 
-                WHERE LOWER(nume_set) LIKE LOWER(%s) AND parent_id is null
-                OR CAST(id_set AS TEXT) LIKE %s
-                ORDER BY {column} {order.upper()}
-            """
-            print(f"Executing query with search term: {query}")
-            cursor.execute(query, (f"%{search_term}%", f"%{search_term}%"))
+            query += " AND LOWER(si.nume_set) LIKE %s"
+            cursor.execute(query, (f"%{search_term.lower()}%",))
         else:
-            query = f"""
-                SELECT id_set, nume_set 
-                FROM seturi_intrebari
-                WHERE parent_id is null
-                ORDER BY {column} {order.upper()}
-            """
-            print(f"Executing query without search term: {query}")
             cursor.execute(query)
 
+
         question_sets = cursor.fetchall()
-        print(f"Fetched question sets: {question_sets}")
 
     except psycopg2.Error as error:
-        print("Eroare la preluarea datelor despre seturile de întrebări:", error)
-        flash(
-            f"A intervenit o eroare în timpul preluării datelor despre seturile de întrebări: {error}",
-            "danger",
-        )
+        print("Eroare la preluarea seturilor de întrebări:", error)
     finally:
-        if connection:
+        if cursor:
             cursor.close()
+        if connection:  
             connection.close()
 
     has_question_sets = bool(question_sets)
-    print(f"Has question sets: {has_question_sets}")
     return render_template(
         "view_question_sets.html",
         question_sets=question_sets,
@@ -1733,6 +1678,7 @@ def view_question_sets():
         has_question_sets=has_question_sets,
         user_type=user_type,
     )
+
 
 
 @app.route("/delete_question_set/<id_set>", methods=["GET"])
@@ -1796,17 +1742,16 @@ def edit_question_set(id_set):
 
             # Get the latest version of the set
             cursor.execute(
-                """
-                SELECT version
-                FROM seturi_intrebari
-                WHERE parent_id = %s
-                ORDER BY version DESC
-                LIMIT 1
-                """,
-                (id_set,),
-            )
+            """
+            SELECT MAX(version)
+            FROM seturi_intrebari
+            WHERE id_set = %s OR parent_id = %s
+            """,
+            (id_set, id_set),
+        )
             result = cursor.fetchone()
             current_version = result[0] if result else 0
+
             
             # Insert a new version of the question set
             cursor.execute(
