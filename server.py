@@ -41,7 +41,7 @@ def connect_db():
     return psycopg2.connect(
         user="postgres",
         password="vasilica",
-        host="192.168.16.164",
+        host="0",
         port="5432",
         database="postgres",
     )
@@ -152,7 +152,7 @@ def get_competitor(username):
         connection = psycopg2.connect(
             user="postgres",
             password="vasilica",
-            host="192.168.16.164",
+            host="0",
             port="5432",
             database="postgres",
         )
@@ -213,7 +213,7 @@ def register():
             connection = psycopg2.connect(
                 user="postgres",
                 password="vasilica",
-                host="192.168.16.164",
+                host="0",
                 port="5432",
                 database="postgres",
             )
@@ -247,7 +247,7 @@ def register_contestant():
         connection = psycopg2.connect(
             user="postgres",
             password="vasilica",
-            host="192.168.16.164",
+            host="0",
             port="5432",
             database="postgres",
         )
@@ -325,7 +325,7 @@ def view_contestants():
         connection = psycopg2.connect(
             user="postgres",
             password="vasilica",
-            host="192.168.16.164",
+            host="c",
             port="5432",
             database="postgres",
         )
@@ -437,7 +437,7 @@ def edit_contestant(id):
         conn = psycopg2.connect(
             user="postgres",
             password="vasilica",
-            host="192.168.16.164",
+            host="0",
             port="5432",
             database="postgres",
         )
@@ -603,7 +603,7 @@ def menu():
         connection = psycopg2.connect(
             user="postgres",
             password="vasilica",
-            host="192.168.16.164",
+            host="0",
             port="5432",
             database="postgres",
         )
@@ -682,7 +682,7 @@ def view_contests():
         connection = psycopg2.connect(
             user="postgres",
             password="vasilica",
-            host="192.168.16.164",
+            host="0",
             port="5432",
             database="postgres",
         )
@@ -807,7 +807,7 @@ def create_question_set():
             connection = psycopg2.connect(
                 user="postgres",
                 password="vasilica",
-                host="192.168.16.164",
+                host="0",
                 port="5432",
                 database="postgres",
             )
@@ -913,7 +913,7 @@ def get_contests():
         connection = psycopg2.connect(
             user="postgres",
             password="vasilica",
-            host="192.168.16.164",
+            host="0",
             port="5432",
             database="postgres",
         )
@@ -1204,7 +1204,7 @@ def preview_quizzes(id_concurs):
         connection = psycopg2.connect(
             user="postgres",
             password="vasilica",
-            host="192.168.16.164",
+            host="0",
             port="5432",
             database="postgres",
         )
